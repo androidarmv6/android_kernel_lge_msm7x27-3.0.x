@@ -568,7 +568,7 @@ static irqreturn_t mcs6000_ts_irq_handler(int irq, void *handle)
 	struct mcs6000_ts_device *dev = handle;
 
 	if (gpio_get_value(dev->intr_gpio) == 0) {
-		disable_irq(dev->num_irq);
+		disable_irq_nosync(dev->num_irq);
 		DMSG("%s: irq disable\n", __FUNCTION__);
 		schedule_delayed_work(&dev->work, 0);
 	}
