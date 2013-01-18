@@ -1018,6 +1018,21 @@ struct msm_snapshot_pp_status {
 #define CFG_SET_VISION_AE             56
 #define CFG_MAX                       57
 
+/* LGE_CHANGE_S [junyeong.han@lge.com] Add CFG values for auto focus */
+/* 2010-05-02: Add auto-focus values */
+/* 2010-05-05: Add setting iso values */
+/* 2010-05-14: Add setting scene values */
+#if defined (CONFIG_ISX005)
+#define CFG_START_AF_FOCUS	101
+#define CFG_CHECK_AF_DONE	102
+#define CFG_CHECK_AF_CANCEL	103
+#define CFG_AF_LOCKED		104
+#define CFG_AF_UNLOCKED		105
+
+#define CFG_SET_ISO			201
+#define CFG_SET_SCENE		202
+#endif
+/* LGE_CHANGE_E [junyeong.han@lge.com] */
 
 #define MOVE_NEAR	0
 #define MOVE_FAR	1
@@ -1046,7 +1061,17 @@ struct msm_snapshot_pp_status {
 #define CAMERA_EFFECT_EMBOSS		9
 #define CAMERA_EFFECT_SKETCH		10
 #define CAMERA_EFFECT_NEON		11
+/* LGE_CHANGE_S [junyeong.han@lge.com] Add CAMERA_EFFECT values */
+/* 2010-05-13: Add CAMERA_EFFECT values */
+#if defined (CONFIG_ISX005)
+#define CAMERA_EFFECT_NEGATIVE_SEPIA	12
+#define CAMERA_EFFECT_BLUE		13
+#define CAMERA_EFFECT_PASTEL		14
+#define CAMERA_EFFECT_MAX		15
+#else	/* 5330 origin */
 #define CAMERA_EFFECT_MAX		12
+#endif
+/* LGE_CHANGE_E [junyeong.han@lge.com] */
 
 /* QRD */
 #define CAMERA_EFFECT_BW		10
