@@ -965,5 +965,18 @@ config TOUCH_REG_MAP_TM2000
 	default y
 	help
 	  Synaptics Register map TM2000.
+ 
+config TOUCHSCREEN_MCS6000
+	default n
+	tristate "MCS6000 touchscreens"
+	depends on I2C
+	help
+	  Say Y here if you have a MCS6000 touchscreen.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called tsc2007.
+
 endif
 
