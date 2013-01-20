@@ -11,13 +11,22 @@ obj-$(CONFIG_SENSOR_K3DH)	+= k3dh.o
 ifeq ($(CONFIG_MACH_MSM7X27_ALESSI), y)
 obj-$(CONFIG_SENSOR_KR3DM)	+= kr3dm_alessi.o
 else
+ifeq ($(CONFIG_MACH_MSM7X27_PECAN), y)
+obj-$(CONFIG_SENSOR_KR3DM)	+= kr3dm_pecan.o
+else
 obj-$(CONFIG_SENSOR_KR3DM)	+= kr3dm.o
 endif
+ifeq ($(CONFIG_MACH_MSM7X27_PECAN), y)
+obj-$(CONFIG_SENSOR_KR3DH)	+= kr3dh_pecan.o
+else
 obj-$(CONFIG_SENSOR_KR3DH)	+= kr3dh.o
 obj-$(CONFIG_SENSOR_AK8973)	+= akm8973.o
 obj-$(CONFIG_SENSOR_AMI602) += ami602.o
 ifeq ($(CONFIG_MACH_MSM7X27_ALESSI), y)
 obj-$(CONFIG_SENSOR_AMI304) += ami304_alessi.o
+else
+ifeq ($(CONFIG_MACH_MSM7X27_PECAN), y)
+obj-$(CONFIG_SENSOR_AMI304) += ami304_pecan.o
 else
 obj-$(CONFIG_SENSOR_AMI304) += ami304.o
 endif
