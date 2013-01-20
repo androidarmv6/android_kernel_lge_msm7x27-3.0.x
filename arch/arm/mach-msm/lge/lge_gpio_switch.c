@@ -187,7 +187,7 @@ static int lge_gpio_switch_probe(struct platform_device *pdev)
 			goto err_request_gpio;
 		
 		if (switch_data->wakeup_flag)
-			set_irq_wake(switch_data->irqs[index], 1);
+			irq_set_irq_wake(switch_data->irqs[index], 1);
 	}	
 
 	if (switch_data->sysfs_store) {
