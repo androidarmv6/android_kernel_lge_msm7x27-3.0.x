@@ -20,6 +20,7 @@ ifeq ($(CONFIG_MACH_MSM7X27_PECAN), y)
 obj-$(CONFIG_SENSOR_KR3DH)	+= kr3dh_pecan.o
 else
 obj-$(CONFIG_SENSOR_KR3DH)	+= kr3dh.o
+endif
 obj-$(CONFIG_SENSOR_AK8973)	+= akm8973.o
 obj-$(CONFIG_SENSOR_AMI602) += ami602.o
 ifeq ($(CONFIG_MACH_MSM7X27_ALESSI), y)
