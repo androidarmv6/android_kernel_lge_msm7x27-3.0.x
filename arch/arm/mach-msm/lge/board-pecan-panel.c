@@ -48,6 +48,7 @@ static void __init msm_fb_add_devices(void)
 	// pecan
 	msm_fb_register_device("mdp", &mdp_pdata);
 	msm_fb_register_device("ebi2", 0);
+		msm_fb_register_device("pmdh", 0);
 }
 
 /* Use pmic_backlight function as power save function, munyoung.hwang@lge.com */
