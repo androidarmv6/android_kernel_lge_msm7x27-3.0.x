@@ -22,7 +22,6 @@
 #include <linux/input.h>
 #include <linux/io.h>
 #include <linux/delay.h>
-#include <linux/bootmem.h>
 #include <linux/power_supply.h>
 
 
@@ -63,6 +62,7 @@
 #include "clock.h"
 #include "msm-keypad-devices.h"
 #include "pm.h"
+#include "../acpuclock.h"
 #ifdef CONFIG_ARCH_MSM7X27
 #include <linux/msm_kgsl.h>
 #endif
@@ -363,13 +363,6 @@ static void __init msm7x2x_init_irq(void)
 	msm_init_irq();
 }
 
-static struct msm_acpu_clock_platform_data msm7x2x_clock_data = {
-	.acpu_switch_time_us = 50,
-	.max_speed_delta_khz = 256000,
-	.vdd_switch_time_us = 62,
-	.max_axi_khz = 160000,
-};
-
 void msm_serial_debug_init(unsigned int base, int irq,
 			   struct device *clk_device, int signal_irq);
 
@@ -401,10 +394,7 @@ unsigned pmem_mdp_size = 0x800000;
 
 static void __init msm7x2x_init(void)
 {
-	if (socinfo_init() < 0)
-		BUG();
-
-	msm_clock_init(msm_clocks_7x27, msm_num_clocks_7x27);
+	msm_clock_init(&msm7x27_clock_init_data);
 
 #if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	msm_serial_debug_init(MSM_UART1_PHYS, INT_UART1,
@@ -412,9 +402,9 @@ static void __init msm7x2x_init(void)
 #endif
 
 	if (cpu_is_msm7x27())
-		msm7x2x_clock_data.max_axi_khz = 200000;
-
-	msm_acpu_clock_init(&msm7x2x_clock_data);
+		acpuclk_init(&acpuclk_7x27_soc_data);
+	else
+		acpuclk_init(&acpuclk_7201_soc_data);
 
 	msm_add_pmem_devices();
 	msm_add_fb_device();
@@ -465,6 +455,9 @@ static void __init msm7x2x_map_io(void)
 
 	msm_msm7x2x_allocate_memory_regions();
 
+	if (socinfo_init() < 0)
+	  BUG();
+
 #ifdef CONFIG_CACHE_L2X0
 	/* 7x27 has 256KB L2 cache:
 		64Kb/Way and 4-Way Associativity;
@@ -476,12 +469,11 @@ static void __init msm7x2x_map_io(void)
 
 MACHINE_START(MSM7X27_PECAN, "PECAN board (LGE LGP350)")
 #ifdef CONFIG_MSM_DEBUG_UART
-	.phys_io        = MSM_DEBUG_UART_PHYS,
-	.io_pg_offst    = ((MSM_DEBUG_UART_BASE) >> 18) & 0xfffc,
 #endif
 	.boot_params	= PHYS_OFFSET + 0x100,
-	.map_io			= msm7x2x_map_io,
-	.init_irq		= msm7x2x_init_irq,
+	.map_io		= msm7x2x_map_io,
+	.reserve  	= msm7x27_reserve,
+	.init_irq	= msm7x2x_init_irq,
 	.init_machine	= msm7x2x_init,
-	.timer			= &msm_timer,
+	.timer		= &msm_timer,
 MACHINE_END
