@@ -82,6 +82,7 @@ struct msm_camera_device_platform_data {
 	uint8_t is_vpe;
 	struct msm_bus_scale_pdata *cam_bus_scale_table;
 };
+#endif
 enum msm_camera_csi_data_format {
 	CSI_8BIT,
 	CSI_10BIT,
