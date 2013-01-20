@@ -83,3 +83,4 @@ obj-$(CONFIG_TOUCHSCREEN_LGE_COMMON)	+= lge_touch_core.o
 obj-$(CONFIG_TOUCHSCREEN_LGE_SYNAPTICS) += touch_synaptics.o
 obj-$(CONFIG_TOUCHSCREEN_LGE_SYNAPTICS) += touch_synaptics_ds4_fw_upgrade.o
 obj-$(CONFIG_TOUCHSCREEN_MCS6000)	+= mcs6000_ts.o
+obj-$(CONFIG_TOUCHSCREEN_MCS7000)	+= mcs7000_ts.o
