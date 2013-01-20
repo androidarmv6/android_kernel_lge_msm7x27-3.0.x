@@ -1,4 +1,4 @@
-EXTRA_CFLAGS += -Wno-sequence-point
+EXTRA_CFLAGS += -Wno-sequence-point -Wno-unused-variable
 
 obj-y += adsp.o adsp_driver.o adsp_info.o adsp_rm.o dsp_debug.o adsp_debug.o
 obj-y += adsp_video_verify_cmd.o
