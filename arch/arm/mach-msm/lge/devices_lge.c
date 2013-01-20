@@ -66,8 +66,9 @@
 #include <linux/usb/mass_storage_function.h>
 #include <linux/usb/android_composite.h>
 #endif
-#ifdef CONFIG_USB_ANDROID
-#include <linux/usb/android_composite.h>
+#ifdef CONFIG_USB_G_ANDROID
+#include <linux/usb/android.h>
+#include <mach/usbdiag.h>
 #endif
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
 #include <asm/setup.h>
@@ -506,25 +507,28 @@ static struct platform_device *pmem_devices[] __initdata = {
 };
 
 static unsigned pmem_kernel_ebi1_size = PMEM_KERNEL_EBI1_SIZE;
-static void __init pmem_kernel_ebi1_size_setup(char **p)
+static void __init pmem_kernel_ebi1_size_setup(char *p)
 {
-	pmem_kernel_ebi1_size = memparse(*p, p);
+	pmem_kernel_ebi1_size = memparse(p, NULL);
+	return 0;
 }
-__early_param("pmem_kernel_ebi1_size=", pmem_kernel_ebi1_size_setup);
+early_param("pmem_kernel_ebi1_size", pmem_kernel_ebi1_size_setup);
 
-__WEAK unsigned pmem_mdp_size = MSM_PMEM_MDP_SIZE;
-static void __init pmem_mdp_size_setup(char **p)
+static unsigned pmem_mdp_size = MSM_PMEM_MDP_SIZE;
+static int __init pmem_mdp_size_setup(char *p)
 {
-	pmem_mdp_size = memparse(*p, p);
+	pmem_mdp_size = memparse(p, NULL);
+	return 0;
 }
-__early_param("pmem_mdp_size=", pmem_mdp_size_setup);
+early_param("pmem_mdp_size=", pmem_mdp_size_setup);
 
-__WEAK unsigned pmem_adsp_size = MSM_PMEM_ADSP_SIZE;
-static void __init pmem_adsp_size_setup(char **p)
+static unsigned pmem_adsp_size = MSM_PMEM_ADSP_SIZE;
+static int __init pmem_adsp_size_setup(char *p)
 {
-	pmem_adsp_size = memparse(*p, p);
+	pmem_adsp_size = memparse(p, NULL);
+	return 0;
 }
-__early_param("pmem_adsp_size=", pmem_adsp_size_setup);
+early_param("pmem_adsp_size=", pmem_adsp_size_setup);
 
 static unsigned pmem_audio_size = MSM_PMEM_AUDIO_SIZE;
 static int __init pmem_audio_size_setup(char *p)
@@ -534,12 +538,13 @@ static int __init pmem_audio_size_setup(char *p)
 }
 early_param("pmem_audio_size", pmem_audio_size_setup);
 
-__WEAK unsigned pmem_fb_size = MSM_FB_SIZE;
-static void __init fb_size_setup(char **p)
+static unsigned pmem_fb_size = MSM_FB_SIZE;
+static int __init fb_size_setup(char *p)
 {
-	pmem_fb_size = memparse(*p, p);
+	pmem_fb_size = memparse(p, NULL);
+	return 0;
 }
-__early_param("pmem_fb_size=", fb_size_setup);
+early_param("pmem_fb_size=", fb_size_setup);
 
 void __init msm_msm7x2x_allocate_memory_regions(void)
 {
@@ -612,6 +617,11 @@ static void __init msm7x27_reserve(void)
 	msm_reserve();
 }
 
+static void __init msm7x27_init_early(void)
+{
+	msm_msm7x2x_allocate_memory_regions();
+}
+
 void __init msm_add_pmem_devices(void)
 {
 	platform_add_devices(pmem_devices, ARRAY_SIZE(pmem_devices));
@@ -654,6 +664,21 @@ __WEAK struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	
 };
 
+#ifdef CONFIG_USB_G_ANDROID
+static struct android_usb_platform_data android_usb_pdata = {
+	.update_pid_and_serial_num = usb_diag_update_pid_and_serial_num,
+};
+
+static struct platform_device android_usb_device = {
+	.name	= "android_usb",
+	.id		= -1,
+	.dev		= {
+		.platform_data = &android_usb_pdata,
+	},
+};
+
+#endif
+
 #ifdef CONFIG_USB_EHCI_MSM_72K
 static void msm_hsusb_vbus_power(unsigned phy_info, int on)
 {
@@ -673,309 +698,6 @@ static void __init msm7x2x_init_host(void)
 
 	msm_add_host(0, &msm_usb_host_pdata);
 }
-#endif
-
-/* setting hsusb */
-#ifdef CONFIG_USB_FUNCTION
-__WEAK struct usb_mass_storage_platform_data usb_mass_storage_pdata = {
-	.nluns          = 0x02,
-	.buf_size       = 16384,
-	.vendor         = "GOOGLE",
-	.product        = "Mass storage",
-	.release        = 0xffff,
-};
-
-__WEAK struct platform_device mass_storage_device = {
-	.name           = "usb_mass_storage",
-	.id             = -1,
-	.dev            = {
-		.platform_data          = &usb_mass_storage_pdata,
-	},
-};
-#endif
-
-#ifdef CONFIG_USB_ANDROID
-__WEAK char *usb_functions_default[] = {
-	"diag",
-	"modem",
-	"nmea",
-	"rmnet",
-	"usb_mass_storage",
-};
-
-__WEAK char *usb_functions_default_adb[] = {
-	"diag",
-	"adb",
-	"modem",
-	"nmea",
-	"rmnet",
-	"usb_mass_storage",
-};
-
-__WEAK char *usb_functions_rndis[] = {
-	"rndis",
-};
-
-__WEAK char *usb_functions_rndis_adb[] = {
-	"rndis",
-	"adb",
-};
-
-__WEAK char *usb_functions_all[] = {
-#ifdef CONFIG_USB_ANDROID_RNDIS
-	"rndis",
-#endif
-#ifdef CONFIG_USB_ANDROID_DIAG
-	"diag",
-#endif
-	"adb",
-#ifdef CONFIG_USB_F_SERIAL
-	"modem",
-	"nmea",
-#endif
-#ifdef CONFIG_USB_ANDROID_RMNET
-	"rmnet",
-#endif
-	"usb_mass_storage",
-#ifdef CONFIG_USB_ANDROID_ACM
-	"acm",
-#endif
-};
-
-__WEAK struct android_usb_product usb_products[] = {
-	{
-		.product_id	= 0x9026,
-		.num_functions	= ARRAY_SIZE(usb_functions_default),
-		.functions	= usb_functions_default,
-	},
-	{
-		.product_id	= 0x9025,
-		.num_functions	= ARRAY_SIZE(usb_functions_default_adb),
-		.functions	= usb_functions_default_adb,
-	},
-	{
-		.product_id	= 0xf00e,
-		.num_functions	= ARRAY_SIZE(usb_functions_rndis),
-		.functions	= usb_functions_rndis,
-	},
-	{
-		.product_id	= 0x9024,
-		.num_functions	= ARRAY_SIZE(usb_functions_rndis_adb),
-		.functions	= usb_functions_rndis_adb,
-	},
-};
-
-__WEAK struct usb_mass_storage_platform_data mass_storage_pdata = {
-	.nluns		= 1,
-	.vendor		= "Qualcomm Incorporated",
-	.product    	= "Mass storage",
-	.release	= 0x0100,
-	.can_stall  	= 1,
-};
-
-__WEAK struct platform_device usb_mass_storage_device = {
-	.name	= "usb_mass_storage",
-	.id	= -1,
-	.dev	= {
-		.platform_data = &mass_storage_pdata,
-	},
-};
-
-__WEAK struct usb_ether_platform_data rndis_pdata = {
-	/* ethaddr is filled by board_serialno_setup */
-	.vendorID	= 0x05C6,
-	.vendorDescr	= "Qualcomm Incorporated",
-};
-
-__WEAK struct platform_device rndis_device = {
-	.name	= "rndis",
-	.id	= -1,
-	.dev	= {
-		.platform_data = &rndis_pdata,
-	},
-};
-
-#ifdef CONFIG_USB_ANDROID_CDC_ECM
-/* LGE_CHANGE
- * To bind LG AndroidNet, add platform data for CDC ACM.
- * 2011-01-12, hyunhui.park@lge.com
- */
-__WEAK struct usb_ether_platform_data ecm_pdata = {
-	/* ethaddr is filled by board_serialno_setup */
-	.vendorID   	= 0x1004,
-	.vendorDescr    = "LG Electronics Inc.",
-};
-
-__WEAK struct platform_device ecm_device = {
-	.name   = "ecm",
-	.id 	= -1,
-	.dev    = {
-		.platform_data = &ecm_pdata,
-	},
-};
-#endif
-
-#ifdef CONFIG_USB_ANDROID_ACM
-/* LGE_CHANGE
- * To bind LG AndroidNet, add platform data for CDC ACM.
- * 2011-01-12, hyunhui.park@lge.com
- */
-__WEAK struct acm_platform_data acm_pdata = {
-	.num_inst	    = 1,
-};
-
-__WEAK struct platform_device acm_device = {
-	.name   = "acm",
-	.id 	= -1,
-	.dev    = {
-		.platform_data = &acm_pdata,
-	},
-};
-#endif
-
-#ifdef CONFIG_USB_SUPPORT_LGE_ANDROID_AUTORUN
-/* LGE_CHANGE
- * Add platform data and device for cdrom storage function.
- * It will be used in Autorun feature.
- * 2011-03-02, hyunhui.park@lge.com
- */
-__WEAK struct usb_cdrom_storage_platform_data cdrom_storage_pdata = {
-	.nluns		= 1,
-	.vendor		= "Qualcomm Incorporated",
-	.product    = "CDROM storage",
-	.release	= 0x0100,
-};
-
-__WEAK struct platform_device usb_cdrom_storage_device = {
-	.name	= "usb_cdrom_storage",
-	.id	= -1,
-	.dev	= {
-		.platform_data = &cdrom_storage_pdata,
-	},
-};
-#endif
-
-__WEAK struct android_usb_platform_data android_usb_pdata = {
-	.vendor_id	= 0x05C6,
-	.product_id	= 0x9026,
-	.version	= 0x0100,
-	.product_name		= "Qualcomm HSUSB Device",
-	.manufacturer_name	= "Qualcomm Incorporated",
-	.num_products = ARRAY_SIZE(usb_products),
-	.products = usb_products,
-	.num_functions = ARRAY_SIZE(usb_functions_all),
-	.functions = usb_functions_all,
-	.serial_number = "1234567890ABCDEF",
-};
-
-static struct platform_device android_usb_device = {
-	.name	= "android_usb",
-	.id		= -1,
-	.dev		= {
-		.platform_data = &android_usb_pdata,
-	},
-};
-
-static int __init board_serialno_setup(char *serialno)
-{
-	int i;
-	char *src = serialno;
-
-	/* create a fake MAC address from our serial number.
-	 * first byte is 0x02 to signify locally administered.
-	 */
-	rndis_pdata.ethaddr[0] = 0x02;
-	for (i = 0; *src; i++) {
-		/* XOR the USB serial across the remaining bytes */
-		rndis_pdata.ethaddr[i % (ETH_ALEN - 1) + 1] ^= *src++;
-	}
-
-	android_usb_pdata.serial_number = serialno;
-	return 1;
-}
-__setup("androidboot.serialno=", board_serialno_setup);
-#endif
-
-#ifdef CONFIG_USB_FUNCTION
-__WEAK static struct usb_function_map usb_functions_map[] = {
-	{"diag", 0},
-	{"adb", 1},
-	{"modem", 2},
-	{"nmea", 3},
-	{"mass_storage", 4},
-	{"ethernet", 5},
-	{"rmnet", 6},
-};
-
-/* dynamic composition */
-__WEAK static struct usb_composition usb_func_composition[] = {
-	{
-		.product_id         = 0x9012,
-		.functions	    = 0x5, /* 0101 */
-	},
-
-	{
-		.product_id         = 0x9013,
-		.functions	    = 0x15, /* 10101 */
-	},
-
-	{
-		.product_id         = 0x9014,
-		.functions	    = 0x30, /* 110000 */
-	},
-
-	{
-		.product_id         = 0x9016,
-		.functions	    = 0xD, /* 01101 */
-	},
-
-	{
-		.product_id         = 0x9017,
-		.functions	    = 0x1D, /* 11101 */
-	},
-
-	{
-		.product_id         = 0xF000,
-		.functions	    = 0x10, /* 10000 */
-	},
-
-	{
-		.product_id         = 0xF009,
-		.functions	    = 0x20, /* 100000 */
-	},
-
-	{
-		.product_id         = 0x9018,
-		.functions	    = 0x1F, /* 011111 */
-	},
-#ifdef CONFIG_USB_FUNCTION_RMNET
-	{
-		.product_id         = 0x9021,
-		/* DIAG + RMNET */
-		.functions	    = 0x41,
-	},
-	{
-		.product_id         = 0x9022,
-		/* DIAG + ADB + RMNET */
-		.functions	    = 0x43,
-	},
-#endif
-
-};
-
-__WEAK struct msm_hsusb_platform_data msm_hsusb_pdata = {
-	.version	= 0x0100,
-	.phy_info	= (USB_PHY_INTEGRATED | USB_PHY_MODEL_65NM),
-	.vendor_id          = 0x5c6,
-	.product_name       = "Qualcomm HSUSB Device",
-	.serial_number      = "1234567890ABCDEF",
-	.manufacturer_name  = "Qualcomm Incorporated",
-	.compositions	= usb_func_composition,
-	.num_compositions = ARRAY_SIZE(usb_func_composition),
-	.function_map   = usb_functions_map,
-	.num_functions	= ARRAY_SIZE(usb_functions_map),
-	.config_gpio    = NULL,
-};
 #endif
 
 #ifdef CONFIG_USB_MSM_OTG_72K
@@ -1048,7 +770,6 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 #endif
 	.ldo_init       = msm_hsusb_ldo_init,
 	.pclk_required_during_lpm = 1,
-	.pclk_src_name		= "ebi1_usb_clk",
 };
 
 #ifdef CONFIG_USB_GADGET
@@ -1064,29 +785,6 @@ static struct platform_device *usb_devices[] __initdata = {
 #endif
 #endif
 
-#ifdef CONFIG_USB_FUNCTION
-	&msm_device_hsusb_peripheral,
-	&mass_storage_device,
-#endif
-#ifdef CONFIG_USB_ANDROID
-	&usb_mass_storage_device,
-	&rndis_device,
-	/* LGE_CHANGE
-	 * Add CDC ECM & CDC ACM platform device
-	 * 2011-01-12, hyunhui.park@lge.com
-	 */
-#ifdef CONFIG_USB_ANDROID_CDC_ECM
-	&ecm_device,
-#endif
-#ifdef CONFIG_USB_ANDROID_ACM
-	&acm_device,
-#endif
-#ifdef CONFIG_USB_ANDROID_DIAG
-	&usb_diag_device,
-#endif
-#ifdef CONFIG_USB_F_SERIAL
-	&usb_gadget_fserial_device,
-#endif
 #ifdef CONFIG_USB_SUPPORT_LGE_ANDROID_AUTORUN
 	/* LGE_CHANGE
 	 * Add platform data and device for cdrom storage function.
@@ -1095,8 +793,10 @@ static struct platform_device *usb_devices[] __initdata = {
 	 */
 	&usb_cdrom_storage_device,
 #endif
+#ifdef CONFIG_USB_G_ANDROID
 	&android_usb_device,
 #endif
+
 };
 
 static void usb_mpp_init(void)
@@ -1117,14 +817,6 @@ static void usb_mpp_init(void)
 void __init msm_add_usb_devices(void) 
 {
 	usb_mpp_init();
-
-#ifdef CONFIG_USB_FUNCTION
-	msm_hsusb_pdata.swfi_latency =
-		msm7x27_pm_data
-		[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
-
-	msm_device_hsusb_peripheral.dev.platform_data = &msm_hsusb_pdata;
-#endif
 
 #ifdef CONFIG_USB_MSM_OTG_72K
 	msm_device_otg.dev.platform_data = &msm_otg_pdata;
@@ -1159,6 +851,10 @@ void __init msm_add_usb_devices(void)
 #endif
 }
 
+static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
+	.p_addr = 0,
+};
 /* setting msm i2c device */
 static void
 msm_i2c_gpio_config(int iface, int config_type)
@@ -1194,6 +890,23 @@ static struct msm_i2c_platform_data msm_i2c_pdata = {
 	.aux_dat = 96,
 	.msm_i2c_config_gpio = msm_i2c_gpio_config,
 };
+#if 0 //TODO: once this is booted, port msm7627-regulator for msm7x27
+static struct platform_device msm_proccomm_regulator_dev = {
+	.name   = PROCCOMM_REGULATOR_DEV_NAME,
+	.id     = -1,
+	.dev    = {
+	  .platform_data = &msm7627_proccomm_regulator_data
+	}
+};
+
+static void __init msm7627_init_regulators(void)
+{
+	int rc = platform_device_register(&msm_proccomm_regulator_dev);
+	if (rc)
+	  pr_err("%s: could not register regulator device: %d\n",
+	     __func__, rc);
+}
+#endif
 
 void __init msm_device_i2c_init(void)
 {
