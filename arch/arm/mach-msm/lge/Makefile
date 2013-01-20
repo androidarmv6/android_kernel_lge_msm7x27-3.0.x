@@ -19,8 +19,7 @@ obj-$(CONFIG_LGE_BLUE_ERROR_HANDLER) += lge_errorhandler.o
 obj-$(CONFIG_LGE_PROC_COMM) += lge_proc_comm.o
 obj-$(CONFIG_LGE_SUPPORT_ERS) += lge_ers.o
 obj-$(CONFIG_LGE_SUPPORT_RAPI) += LG_rapi_client.o
-obj-$(CONFIG_LGE_MTD_DIRECT_ACCESS) += lge_mtd_direct_access.o  #need this rather than emmc direct ac
-cess, maybe this was problem on previous builds?
+obj-$(CONFIG_LGE_MTD_DIRECT_ACCESS) += lge_mtd_direct_access.o  #need this rather than emmc direct access, maybe this was problem on previous builds?
 obj-$(CONFIG_LGE_DIAGTEST) += lg_diag_testmode.o
 obj-$(CONFIG_LGE_DIAGTEST) += lg_fw_diag_class.o
 obj-$(CONFIG_LGE_DIAGTEST) += lg_fw_diag_communication.o
