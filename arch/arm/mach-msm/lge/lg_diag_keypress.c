@@ -1,92 +1,84 @@
 #include <linux/module.h>
 #include <linux/delay.h>
-#include <lg_diagcmd.h>
-#include <lg_diag_keypress.h>
+#include <mach/lg_diagcmd.h>
+#include <mach/lg_diag_keypress.h>
 #include <linux/input.h>
 #include <mach/gpio.h>
 /*==========================================================================*/
 #define HS_RELEASE_K 0xFFFF
-#define KEY_TRANS_MAP_SIZE 77
-
-//#define DEBUG_DIAG_KEYPRESS
-
-/* Virtual Key */
-#define V_KEY_DIAL					0x60
-#define V_KEY_CALL_LOG				0x61
-#define V_KEY_DELETE_ALL_CALL_LOG	0x62
-#define V_KEY_OK_DELETE				0x63
-#define V_KEY_UNLOCK	198
-#define V_KEY_STAR	227
-#define V_KEY_POUND	228
-
-#define DIAL_TOUCH_X  137	
-#define DIAL_TOUCH_Y  1843
-#define CALL_LOG_TOUCH_X  397
-#define CALL_LOG_TOUCH_Y  222
-#define DELET_ALL_TOUCH_X 978
-#define DELET_ALL_TOUCH_Y 1916
-#define DELET_OK_TOUCH_X 333
-#define DELET_OK_TOUCH_Y 1231
-
-extern struct input_dev* get_ats_input_dev(void);
+/* 
+enum {
+	GPIO_SLIDE_CLOSE=0,
+	GPIO_SLIDE_OPEN,
+};
+*/
+#define KEY_TRANS_MAP_SIZE 70
 typedef struct {
 	  word LG_common_key_code;
 	    unsigned int Android_key_code;
 }keycode_trans_type;
 
 keycode_trans_type keytrans_table[KEY_TRANS_MAP_SIZE]={
-/* index = 0 */	{0x30, KEY_0},	
-/* index = 1 */	{0x31, KEY_1},	
-/* index = 2 */	{0x32, KEY_2},	
-/* index = 3 */	{0x33, KEY_3},	
-/* index = 4 */	{0x34, KEY_4},	
-/* index = 5 */	{0x35, KEY_5},	
-/* index = 6 */	{0x36, KEY_6},	
-/* index = 7 */	{0x37, KEY_7},	
-/* index = 8 */	{0x38, KEY_8},	
-/* index = 9 */	{0x39, KEY_9},	
-/* index = 10 */{0x2A, V_KEY_STAR},	
-/* index = 11 */{0x23, V_KEY_POUND},
-/* index = 12 */{0x50, KEY_SEND},
-/* index = 13 */{0x51, KEY_END},
-/* index = 14 */{0x52, V_KEY_UNLOCK},
-/* index = 15 */{0x10, KEY_LEFT},	
-/* index = 16 */{0x11, KEY_RIGHT},
-/* index = 17 */{0x54, KEY_UP},
-/* index = 18 */{0x55, KEY_DOWN},
-/* index = 19 */{0x53, KEY_OK},
-/* index = 20 */{0x96, KEY_VOLUMEUP},
-/* index = 21 */{0x97, KEY_VOLUMEDOWN},
-/* index = 22 */{0x51, KEY_POWER},
-/* index = 23 */{0xA0, KEY_MENU},	
-/* index = 24 */{0xA1, KEY_HOME},		
-/* index = 25 */{0xA2, KEY_BACK},			
-/* index = 26 */{0xB0, KEY_SEND /*V_KEY_DIAL*/}, 
-/* index = 27 */{0xB1, V_KEY_CALL_LOG}, 
-/* index = 28 */{0xB2, V_KEY_DELETE_ALL_CALL_LOG}, 
-/* index = 29 */{0xB3, V_KEY_OK_DELETE}, 
+    {0x204E        ,   KEY_HOME },
+    /* {0x4E        ,   243 },     // folder home for aloha model */
+    {0x204F        ,   KEY_MENU },
+    /* {0x4F        ,   244 },     // folder menu for aloha model */
+    {0x2050        ,   KEY_SEND },
+    {0x2051        ,   KEY_END },
+    {0x2092        ,   KEY_VOLUMEUP },
+    {0x2093        ,   KEY_VOLUMEDOWN},
+    {0x8F        ,   KEY_CAMERA },
+      
+    {0x2023     ,   228}, // pound
+    {0x202A     ,   227}, // star
+    {0x30     ,   KEY_0},     {0x31     ,   KEY_1},     {0x32     ,   KEY_2},     {0x33     ,   KEY_3},
+    {0x34     ,   KEY_4},     {0x35     ,   KEY_5},     {0x36     ,   KEY_6},     {0x37     ,   KEY_7}, 
+    {0x38     ,   KEY_8},     {0x39     ,   KEY_9},      
+
+    {0x2030     ,   KEY_0},     {0x2031     ,   KEY_1},     {0x2032     ,   KEY_2},     {0x2033     ,   KEY_3},
+    {0x2034     ,   KEY_4},     {0x2035     ,   KEY_5},     {0x2036     ,   KEY_6},     {0x2037     ,   KEY_7}, 
+    {0x2038     ,   KEY_8},     {0x2039     ,   KEY_9},      
+
+    {0x2041     ,   KEY_A},  {0x2042     ,   KEY_B}, {0x2043     ,   KEY_C},   {0x2044     ,   KEY_D}, 
+    {0x2045     ,   KEY_E},  {0x2046     ,   KEY_F},  {0x2047     ,   KEY_G},   {0x2048     ,   KEY_H}, 
+    {0x2049     ,   KEY_I},   {0x204A     ,   KEY_J},  {0x204B     ,   KEY_K},   {0x204C     ,   KEY_L}, 
+    {0x204D     ,   KEY_M},  {0x204E     ,   KEY_N}, {0x204F     ,   KEY_O},   {0x2050     ,   KEY_P}, 
+    {0x2051     ,   KEY_Q},  {0x2052     ,   KEY_R}, {0x2053     ,   KEY_S},   {0x2054     ,   KEY_T}, 
+    {0x2055     ,   KEY_U},  {0x2056     ,   KEY_V}, {0x2057     ,   KEY_W},  {0x2058     ,   KEY_X}, 
+    {0x2059     ,   KEY_Y},  {0x205A     ,   KEY_Z}, 
+
+    {0x1010     ,   103},  {0x1011     ,  108},   {0x1054     ,   106},   {0x1055     ,   105}, // left , right, up, down
+    {0x1053     ,   KEY_REPLY},   // navi ok
+    {0x101D     ,   KEY_ENTER},
+    {0x1020     ,   KEY_SPACE},
+
+    {0x1030     ,   KEY_HOME},
+    {0x1031     ,   KEY_MENU},
+    {0x1032     ,   KEY_BACKSPACE},
+    {0x1033     ,   KEY_BACK},
+    {0x1034     ,   KEY_SEARCH},
+    {0x1035     ,   KEY_LEFTALT},
+    {0x1036     ,   KEY_LEFTSHIFT},
+    {0x1037     ,   KEY_DOT},
 };
 
 unsigned int LGF_KeycodeTrans(word input)
 {
-	int index = 0;
-	unsigned int ret = (unsigned int)input;  // if we can not find, return the org value. 
+  int index = 0;
+  unsigned int ret = (unsigned int)input;  // if we can not find, return the org value. 
  
-	for( index = 0; index < KEY_TRANS_MAP_SIZE ; index++)
-	{
-		if( keytrans_table[index].LG_common_key_code == input)
-		{
-			ret = keytrans_table[index].Android_key_code;
-			break;
-		}
-	}  
-#ifdef DEBUG_DIAG_KEYPRESS
-	printk(KERN_INFO "##DIAG_KEYPRESS## %s, input(%d), key_code(%d)\n", __func__, input, keytrans_table[index].Android_key_code);		
-#endif
-	return ret;
+  for( index = 0; index < KEY_TRANS_MAP_SIZE ; index++)
+  {
+    if( keytrans_table[index].LG_common_key_code == input)
+    {
+      ret = keytrans_table[index].Android_key_code;
+      break;
+    }
+  }  
+
+  return ret;
 }
 
-EXPORT_SYMBOL(LGF_KeycodeTrans);
 /* ==========================================================================
 ===========================================================================*/
 extern PACK(void *) diagpkt_alloc (diagpkt_cmd_code_type code, unsigned int length);
@@ -98,6 +90,7 @@ static unsigned saveKeycode =0 ;
 
 void SendKey(unsigned int keycode, unsigned char bHold)
 {
+  extern struct input_dev *get_ats_input_dev(void);
   struct input_dev *idev = get_ats_input_dev();
 
   if( keycode != HS_RELEASE_K)
@@ -105,7 +98,7 @@ void SendKey(unsigned int keycode, unsigned char bHold)
 
   if(bHold)
   {
-    saveKeycode = keycode; 
+    saveKeycode = keycode;
   }
   else
   {
@@ -116,26 +109,20 @@ void SendKey(unsigned int keycode, unsigned char bHold)
   }
 }
 
-void LGF_SendKey(word keycode)
+#if 0
+/*  VS660 don't have HALL IC */
+int is_slide_open(void)
 {
-	struct input_dev* idev = NULL;
-
-	idev = get_ats_input_dev();
-
-	if(idev == NULL)
-		printk("%s: input device addr is NULL\n",__func__);
-	
-	input_report_key(idev,(unsigned int)keycode, 1);
-	input_report_key(idev,(unsigned int)keycode, 0);
-
+   if(gpio_get_value(86) == GPIO_SLIDE_OPEN) // hall ic
+      return 0;
+   else
+      return 1;
 }
-
-EXPORT_SYMBOL(LGF_SendKey);
-
+#endif 
 
 PACK (void *)LGF_KeyPress (
-        PACK (void	*)req_pkt_ptr,			/* pointer to request packet  */
-        uint16		pkt_len )		      	/* length of request packet   */
+        PACK (void	*)req_pkt_ptr,	/* pointer to request packet  */
+        uint16		pkt_len )		      /* length of request packet   */
 {
   DIAG_HS_KEY_F_req_type *req_ptr = (DIAG_HS_KEY_F_req_type *) req_pkt_ptr;
   DIAG_HS_KEY_F_rsp_type *rsp_ptr;
@@ -143,8 +130,6 @@ PACK (void *)LGF_KeyPress (
   const int rsp_len = sizeof( DIAG_HS_KEY_F_rsp_type );
 
   rsp_ptr = (DIAG_HS_KEY_F_rsp_type *) diagpkt_alloc( DIAG_HS_KEY_F, rsp_len );
-  if (!rsp_ptr)
-  	return 0;
 
   if((req_ptr->magic1 == 0xEA2B7BC0) && (req_ptr->magic2 == 0xA5B7E0DF))
   {
@@ -165,22 +150,39 @@ PACK (void *)LGF_KeyPress (
   if( keycode == 0xff)
     keycode = HS_RELEASE_K;  // to mach the size
   
-#ifdef DEBUG_DIAG_KEYPRESS		
-	printk(KERN_INFO "##DIAG_KEYPRESS## %s, line(%d), keycode(%d), hold(%d)\n", __func__, __LINE__, keycode, req_ptr->hold);			  
-#endif
-  switch (keycode){
-	case V_KEY_CALL_LOG:
-	    Send_Touch(CALL_LOG_TOUCH_X, CALL_LOG_TOUCH_Y);
-	    break;
-				
-	case V_KEY_DELETE_ALL_CALL_LOG:
-	    Send_Touch(DELET_ALL_TOUCH_X, DELET_ALL_TOUCH_Y);
-	    break;
-				
-	case V_KEY_OK_DELETE:
-	    Send_Touch(DELET_OK_TOUCH_X, DELET_OK_TOUCH_Y);
-	    break;
 
+  switch (keycode){
+	    /* LG_FW 2010.02.24 khlee - UTS TEST needs key to delete call log*/
+  	case 0x2060 :
+		// touch Dialer start
+		Send_Touch(20,478);
+		break;
+	case 0x2061:
+    		//touch call log
+      		Send_Touch(100,50);
+		break;
+	case 0x2062:
+    		//touch Clear Call Logs icon
+      		Send_Touch(265,470);
+		break;
+	case 0x2063:
+    		//ok  icon
+      		Send_Touch(85,315);
+		break;
+	case 0x2064:
+		//power off  button  icon
+		Send_Touch(150,350);
+		break;
+	case 0x2065:
+		//power off ok button  icon
+		Send_Touch(75,315);
+		break;
+	case 0x40 :
+	    /* LG_FW 2010.02.24 khlee - UTS TEST needs send key to call in idle screen*/
+      	   /* FIXME : comment out, taehung.kim@lge.com */
+	//	Send_Touch(30,460);
+
+		break;
 	default:
     	SendKey(keycode , req_ptr->hold);
 		break;

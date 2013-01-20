@@ -21,7 +21,6 @@
 
 #include <linux/platform_device.h>
 #include <linux/input.h>
-#include <linux/slab.h>
 
 #define DRIVER_NAME "diag_event_log"
 

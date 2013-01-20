@@ -58,7 +58,7 @@ int lge_bd_rev;
 
 static int __init board_revno_setup(char *rev_info)
 {
-	char *rev_str[] = { "evb", "rev_a", "rev_b", "rev_c", "rev_d", "rev_e", "rev_f", "rev_g", "rev_10","rev_11","rev_12","rev_13",};
+	char *rev_str[] = { "evb", "rev_a", "rev_b", "rev_c", "rev_d", "rev_e", "rev_f","rev_10","rev_11","rev_12","rev_13",};
 	int i;
 
 	lge_bd_rev = LGE_REV_TOT_NUM;
@@ -162,7 +162,11 @@ static int msm_fb_detect_panel(const char *name)
 	int ret = -EPERM;
 
 	if (machine_is_msm7x25_ffa() || machine_is_msm7x27_ffa()) {
+#ifdef CONFIG_MACH_MSM7X27_ALESSI
+		if (!strcmp(name, "mddi_sharp_hvga_e720"))
+#else
 		if (!strcmp(name, "lcdc_gordon_vga"))
+#endif
 			ret = 0;
 		else
 			ret = -ENODEV;
@@ -233,14 +237,6 @@ static struct resource kgsl_resources[] = {
 		.end = 0xA001ffff,
 		.flags = IORESOURCE_MEM,
 	},
-#ifdef CONFIG_MACH_MSM7X27_PECAN
-	{
-		.name   = "kgsl_phys_memory",
-		.start = 0,
-		.end = 0,
-		.flags = IORESOURCE_MEM,
-	},
-#endif
 	{
 		.name = "kgsl_yamato_irq",
 		.start = INT_GRAPHICS,
@@ -442,14 +438,6 @@ void __init msm_msm7x2x_allocate_memory_regions(void)
 		pr_info("allocating %lu bytes at %p (%lx physical) for kernel"
 				" ebi1 pmem arena\n", size, addr, __pa(addr));
 	}
-#ifdef CONFIG_MACH_MSM7X27_PECAN
-	size = MSM_GPU_PHYS_SIZE;
-	addr = alloc_bootmem(size);
-	kgsl_resources[1].start = __pa(addr);
-	kgsl_resources[1].end = kgsl_resources[1].start + size - 1;
-	pr_info("allocating %lu bytes at %p (at %lx physical) for KGSL\n",
-		size, addr, __pa(addr));
-#endif
 }
 
 void __init msm_add_pmem_devices(void)
@@ -1019,8 +1007,10 @@ static struct msm_i2c_platform_data msm_i2c_pdata = {
 	.rmutex  = 0,
 	.pri_clk = 60,
 	.pri_dat = 61,
+#ifndef CONFIG_MACH_MSM7X27_ALESSI
 	.aux_clk = 95,
 	.aux_dat = 96,
+#endif
 	.msm_i2c_config_gpio = msm_i2c_gpio_config,
 };
 
@@ -1030,10 +1020,12 @@ void __init msm_device_i2c_init(void)
 		pr_err("failed to request gpio i2c_pri_clk\n");
 	if (gpio_request(61, "i2c_pri_dat"))
 		pr_err("failed to request gpio i2c_pri_dat\n");
+#ifndef CONFIG_MACH_MSM7X27_ALESSI
 	if (gpio_request(95, "i2c_sec_clk"))
 		pr_err("failed to request gpio i2c_sec_clk\n");
 	if (gpio_request(96, "i2c_sec_dat"))
 		pr_err("failed to request gpio i2c_sec_dat\n");
+#endif
 
 	if (cpu_is_msm7x27())
 		msm_i2c_pdata.pm_lat =
@@ -1130,40 +1122,6 @@ int init_gpio_i2c_pin(struct i2c_gpio_platform_data *i2c_adap_pdata,
 
 	return 0;
 }
-
-#ifdef CONFIG_MACH_MSM7X27_PECAN
-int init_gpio_i2c_pin_touch(struct i2c_gpio_platform_data *i2c_adap_pdata,
-    struct gpio_i2c_pin gpio_i2c_pin,
-    struct i2c_board_info *i2c_board_info_data)
-{
-  i2c_adap_pdata->sda_pin = gpio_i2c_pin.sda_pin;
-  i2c_adap_pdata->scl_pin = gpio_i2c_pin.scl_pin;
-  {
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.sda_pin, 0, GPIO_CFG_OUTPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.scl_pin, 0, GPIO_CFG_OUTPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-
-  }
-  gpio_set_value(gpio_i2c_pin.sda_pin, 1);
-  gpio_set_value(gpio_i2c_pin.scl_pin, 1);
-
-  if (gpio_i2c_pin.reset_pin) {
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.reset_pin, 0, GPIO_CFG_OUTPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-    gpio_set_value(gpio_i2c_pin.reset_pin, 1);
-  }
-
-  if (gpio_i2c_pin.irq_pin) {
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.irq_pin, 0, GPIO_CFG_INPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-    i2c_board_info_data->irq =
-      MSM_GPIO_TO_INT(gpio_i2c_pin.irq_pin);
-  }
-
-  return 0;
-}
-#endif
 
 __WEAK void __init lge_add_camera_devices(void)
 {
