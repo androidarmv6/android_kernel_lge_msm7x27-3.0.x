@@ -5,15 +5,61 @@ menu "LGE Device-Specific Changes"
 
 menu "LGE Board Selection"
 
-
-config MACH_MSM7X27_PECAN
+config MACH_MSM7X27_THUNDERG
 	depends on ARCH_MSM7X27
 	depends on !MSM_STACKED_MEMORY
 	select MACH_LGE
-	bool "MSM7x27 PECAN Global"
+	bool "MSM7x27 THUNDER Global"
 	help
-	  Support for the LGE MSM7x27 PECAN Global board.
+	  Support for the LGE MSM7x27 THUNDER Global board.
 
+config MACH_MSM7X27_PECAN
+        depends on ARCH_MSM7X27
+        depends on !MSM_STACKED_MEMORY
+        select MACH_LGE
+        bool "MSM7x27 PECAN Global"
+        help
+          Support for the LGE MSM7x27 PECAN Global board.
+
+config MACH_MSM7X27_GELATO
+    depends on ARCH_MSM7X27
+    depends on !MSM_STACKED_MEMORY
+    select MACH_LGE
+    bool "MSM7x27 GELATO Global"
+    help
+      Support for the LGE MSM7x27 GELATO Global board.
+
+config MACH_MSM7X27_UNIVA
+    depends on ARCH_MSM7X27
+    depends on !MSM_STACKED_MEMORY
+    select MACH_LGE
+    bool "MSM7x27 UNIVA Global"
+    help
+      Support for the LGE MSM7x27 UNIVA Global board.
+
+config MACH_MSM7X27_MUSCAT
+    depends on ARCH_MSM7X27
+    depends on !MSM_STACKED_MEMORY
+    select MACH_LGE
+    bool "MSM7x27 MUSCAT"
+    help
+      Support for the LGE MSM7x27 MUSCAT board.
+
+config MACH_MSM7X27_JUMP
+    depends on ARCH_MSM7X27
+    depends on !MSM_STACKED_MEMORY
+    select MACH_LGE
+    bool "MSM7x27 JUMP"
+    help
+      Support for the LGE MSM7x27 JUMP board.
+
+config MACH_MSM7X27_ALESSI
+    depends on ARCH_MSM7X27
+    depends on !MSM_STACKED_MEMORY
+    select MACH_LGE
+    bool "MSM7x27 ALESSI Global"
+    help
+       Support for the LGE MSM7x27 ALESSI Global board.
 
 endmenu
 
@@ -31,47 +77,47 @@ config LGE_SUPPORT_ERS
 	help
 	  LGE error reporting system
 
-config LGE_DIAG_KEYPRESS
-        depends on LGE_DIAGTEST
-        default y
-        bool "LGE UTS KEYPRESS Support"
-        help
-                LGE UTS KEYPRESS Supports
+config LGE_DIAG_KEYPRESS		
+	        depends on LGE_DIAGTEST		
+	        default y		
+	        bool "LGE UTS KEYPRESS Support"		
+	        help		
+	                LGE UTS KEYPRESS Supports		
 
-config LGE_DIAG_UDM
-        depends on LGE_FACTORY
-        default n
-        bool "LGE UDM Support"
-        help
-                LGE UDM Supports
+	config LGE_DIAG_UDM		
+	        depends on LGE_FACTORY		
+	        default n		
+	        bool "LGE UDM Support"		
+	        help		
+	                LGE UDM Supports		
 
-config LGE_DIAG_SCREENSHOT
-        depends on LGE_FACTORY
-        default n
-        bool "LGE UTS SCREENSHOT Support"
-        help
-                LGE UTS SCREENSHOT Supports
+	config LGE_DIAG_SCREENSHOT		
+	        depends on LGE_FACTORY		
+	        default n		
+	        bool "LGE UTS SCREENSHOT Support"		
+	        help		
+	                LGE UTS SCREENSHOT Supports		
 
-config LGE_DLOAD_SRD
-        depends on LGE_FACTORY
-        default n
-        bool "LGE Dload SelfRecoveryDownload Support"
-        help
-                LGE Dload SelfRecoveryDownload Support
+	config LGE_DLOAD_SRD		
+	        depends on LGE_FACTORY		
+	        default n		
+	        bool "LGE Dload SelfRecoveryDownload Support"		
+	        help		
+	                LGE Dload SelfRecoveryDownload Support		
 
-config CONFIG_LGE_DIAG_ERI
-        depends on LGE_FACTORY
-        default n
-        bool "LGE CONFIG_LGE_DIAG_ERI Support"
-        help
-                LGE Dload CONFIG_LGE_DIAG_ERI Support
+	config CONFIG_LGE_DIAG_ERI		
+	        depends on LGE_FACTORY		
+	        default n		
+	        bool "LGE CONFIG_LGE_DIAG_ERI Support"		
+	        help		
+	                LGE Dload CONFIG_LGE_DIAG_ERI Support		
 
-config LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE
-        depends on LGE_FACTORY
-        default n
-        bool "CONFIG_LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE"
-        help
-                Disable Input Devices on Sleep Mode(250-42-0) for inspector to control key or touch
+	config LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE		
+	        depends on LGE_FACTORY		
+	        default n		
+	        bool "CONFIG_LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE"		
+	        help		
+	                Disable Input Devices on Sleep Mode(250-42-0) for inspector to control key or touch
 
 config LGE_HANDLE_MODEM_CRASH
 	tristate "Support LGE Modem Crash Handler"
