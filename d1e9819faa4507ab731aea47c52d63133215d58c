@@ -1,0 +1,8 @@
+Change-Id: Id1e9819faa4507ab731aea47c52d63133215d58c
+Code-Review+2: Randolf Kastenmaier <randolf.kastenmaier@gmail.com>
+Verified+1: Randolf Kastenmaier <randolf.kastenmaier@gmail.com>
+Submitted-by: Ron Gokhale <cips173@gmail.com>
+Submitted-at: Sun, 20 Jan 2013 21:55:58 +0100
+Reviewed-on: http://server.cas-online.nl:8181/740
+Project: androidarmv6/android_kernel_lge_msm7x27-3.0.x
+Branch: refs/heads/cm-10.1
