@@ -1,4 +1,5 @@
 EXTRA_CFLAGS += -Iarch/arm/mach-msm
+EXTRA_CFLAGS += -Wno-sequence-point
 obj-$(CONFIG_LGE_HEADSET_2GPIO) += lge_gpio_h2w.o
 obj-$(CONFIG_LGE_SWITCH_GPIO) += lge_gpio_switch.o
 obj-$(CONFIG_LGE_HANDLE_PANIC) += lge_handle_panic.o
