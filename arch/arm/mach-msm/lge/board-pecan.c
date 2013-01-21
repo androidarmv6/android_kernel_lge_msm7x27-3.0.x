@@ -337,6 +337,11 @@ static struct platform_device *devices[] __initdata = {
 
 extern struct sys_timer msm_timer;
 
+static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
+	.p_addr = 0,
+};
+
 static void __init msm7x2x_init_irq(void)
 {
 	msm_init_irq();
