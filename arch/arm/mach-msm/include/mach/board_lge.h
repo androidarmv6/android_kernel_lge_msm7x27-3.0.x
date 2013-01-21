@@ -156,9 +156,15 @@ int lge_get_factory_boot(void);
 #endif
 
 #ifdef CONFIG_ARCH_MSM7X27
+#if defined(CONFIG_MACH_MSM7X27_PECAN)
+/* TODO: optimization needed, pmem_mdp is reduced for qvga by bongkyu.kim */
+#define MSM_PMEM_MDP_SIZE	0x1076000 /* 23->12MB + 4.46 MB */
+#define MSM_FB_SIZE		0x50000
+#else
 #define MSM_PMEM_MDP_SIZE	0x1B76000
-#define MSM_PMEM_ADSP_SIZE     0xC00000 //12MB
 #define MSM_FB_SIZE		0x177000
+#endif
+#define MSM_PMEM_ADSP_SIZE     0xC00000 //12MB
 #define PMEM_KERNEL_EBI1_SIZE	0x1C000
 
 /* Using lower 1MB of OEMSBL memory for GPU_PHYS */
