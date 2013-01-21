@@ -168,9 +168,12 @@ int lge_get_factory_boot(void);
 #define PMEM_KERNEL_EBI1_SIZE	0x1C000
 
 /* Using lower 1MB of OEMSBL memory for GPU_PHYS */
+#if defined(CONFIG_MACH_MSM7X27_PECAN)
+#define MSM_GPU_PHYS_START_ADDR	 0x240000ul
+#else
 #define MSM_GPU_PHYS_START_ADDR	 0xD600000ul
 #endif
-
+#endif
 
 /* TA charger */
 #define GISELE_TA_CHG_CURRENT	600
@@ -187,6 +190,8 @@ int lge_get_factory_boot(void);
 #ifdef CONFIG_MACH_MSM7X27_MUSCAT
 /* I dont know why I allocate bigger than real lcd size in muscat , because EBI2 interface? */
 #define HIDDEN_RESET_FB_SIZE 165600
+#elif CONFIG_MACH_MSM7X27_PECAN
+#define HIDDEN_RESET_FB_SIZE (256 * 320 * 2)
 #else
 #define HIDDEN_RESET_FB_SIZE (320*480*2)
 #endif
@@ -199,6 +204,9 @@ enum {
 	LGE_REV_D,
 	LGE_REV_E,
 	LGE_REV_F,
+#if defined(CONFIG_MACH_MSM7X27_PECAN)
+        LGE_REV_G,
+#endif
 	LGE_REV_10,
 	LGE_REV_11,
 	LGE_REV_12,
