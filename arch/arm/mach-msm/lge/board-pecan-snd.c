@@ -209,6 +209,7 @@ DEC_INFO("AUDPLAY3TASK", 16, 3, 11), /* AudPlay3BitStreamCtrlQueue */
 DEC_INFO("AUDPLAY4TASK", 17, 4, 1), /* AudPlay4BitStreamCtrlQueue */
 #endif
 #endif
+};
 
 static struct msm_adspdec_database msm_device_adspdec_database = {
 	.num_dec = ARRAY_SIZE(dec_info_list),
