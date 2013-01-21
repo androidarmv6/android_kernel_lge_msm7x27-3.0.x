@@ -22,7 +22,7 @@ static int tolk_store(struct device *dev, struct device_attribute *attr, const c
 	printk("%s:factory reset magic num from android=%s\n",__func__,buf);
 	magic_number = simple_strtoul(buf,NULL,16);
 	printk("magic_number = %lu\n",magic_number);
-#if defined (CONFIG_MACH_MSM7X27_MUSCAT) || defined (CONFIG_MACH_MSM7X27_JUMP)
+#if defined (CONFIG_MACH_MSM7X27_MUSCAT)
 	vir_addr = ioremap(0xffff000, PAGE_SIZE);
 #elif defined (CONFIG_MACH_MSM7X27_PECAN)
 	vir_addr = ioremap(0x0ffff000, PAGE_SIZE);
