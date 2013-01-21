@@ -83,7 +83,11 @@ int lge_bd_rev;
 
 static int __init board_revno_setup(char *rev_info)
 {
-	char *rev_str[] = { "evb", "rev_a", "rev_b", "rev_c", "rev_d", "rev_e", "rev_f", "rev_g", "rev_10","rev_11","rev_12","rev_13",};
+	char *rev_str[] = { "evb", "rev_a", "rev_b", "rev_c", "rev_d", "rev_e", "rev_f",
+#if defined(CONFIG_MACH_MSM7X27_PECAN)
+		"rev_g",
+#endif
+		"rev_10","rev_11","rev_12","rev_13",};
 	int i;
 
 	lge_bd_rev = LGE_REV_TOT_NUM;
