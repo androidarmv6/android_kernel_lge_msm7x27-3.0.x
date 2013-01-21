@@ -50,6 +50,7 @@
 #include "../devices.h"
 #include "../pm.h"
 #include <mach/socinfo.h>
+#include <linux/bootmem.h>
 
 /* setting board revision information */
 int lge_bd_rev;
