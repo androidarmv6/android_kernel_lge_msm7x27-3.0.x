@@ -454,7 +454,7 @@ static void __init msm7x2x_init(void)
 	if (socinfo_init() < 0)
 		BUG();
 
-	msm_clock_init(msm_clocks_7x27, msm_num_clocks_7x27);
+	msm_clock_init(&msm7x27_clock_init_data);
 
 #if defined(CONFIG_MSM_SERIAL_DEBUGGER)
 	msm_serial_debug_init(MSM_UART3_PHYS, INT_UART3,
