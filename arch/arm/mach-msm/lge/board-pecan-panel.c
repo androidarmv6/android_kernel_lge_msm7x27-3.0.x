@@ -133,10 +133,12 @@ static struct aat28xx_platform_data aat2870bl_data[] = {
 		.gpio = 82,
 		.version = 2862,
 	},
+#if 1 // I am pecan
 	[LGE_REV_G] = {
 		.gpio = 82,
 		.version = 2862,
 	},
+#endif
 	[LGE_REV_10] = {
 		.gpio = 82,
 		.version = 2862,
