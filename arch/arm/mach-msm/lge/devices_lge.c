@@ -50,6 +50,7 @@
 #include "../devices.h"
 #include "../pm.h"
 #include <mach/socinfo.h>
+#include <linux/bootmem.h>
 
 /* setting board revision information */
 int lge_bd_rev;
@@ -275,12 +276,11 @@ static struct platform_device *pmem_devices[] __initdata = {
 };
 
 static unsigned pmem_kernel_ebi1_size = PMEM_KERNEL_EBI1_SIZE;
-static void __init pmem_kernel_ebi1_size_setup(char *p)
+static void __init pmem_kernel_ebi1_size_setup(char **p)
 {
-	pmem_kernel_ebi1_size = memparse(p, NULL);
-	return 0;
+        pmem_kernel_ebi1_size = memparse(*p, p);
 }
-early_param("pmem_kernel_ebi1_size", pmem_kernel_ebi1_size_setup);
+__early_param("pmem_kernel_ebi1_size=", pmem_kernel_ebi1_size_setup);
 
 static unsigned pmem_mdp_size = MSM_PMEM_MDP_SIZE;
 static int __init pmem_mdp_size_setup(char *p)
@@ -429,7 +429,7 @@ __WEAK struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	.idle_enabled = 1,
 	.latency = 2000,
 	.residency = 0,
-	
+	}
 };
 
 #ifdef CONFIG_USB_G_ANDROID
