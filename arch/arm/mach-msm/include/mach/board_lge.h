@@ -91,9 +91,6 @@ enum {
 	LGE_REV_D,
 	LGE_REV_E,
 	LGE_REV_F,
-#if defined(CONFIG_MACH_MSM7X27_PECAN)
-        LGE_REV_G,
-#endif
 	LGE_REV_10,
 	LGE_REV_11,
 	LGE_REV_12,
