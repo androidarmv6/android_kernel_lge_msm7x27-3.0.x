@@ -1,7 +1,7 @@
 /* linux/arch/arm/mach-msm/lge/devices_lge.c
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2009 LGE.
+ * Copyright (C) 2009-2010 LGE.
  * Author: SungEun Kim <cleaneye.kim@lge.com>
  *
  * This software is licensed under the terms of the GNU General Public
