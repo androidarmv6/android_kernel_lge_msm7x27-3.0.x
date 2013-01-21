@@ -453,7 +453,7 @@ static void __init msm7x2x_map_io(void)
 MACHINE_START(MSM7X27_PECAN, "PECAN board (LGE LGP350)")
 	.boot_params	= PLAT_PHYS_OFFSET + 0x100,
 	.map_io		= msm7x2x_map_io,
-	.reserve  	= msm7x27_reserve,
+//	.reserve  	= msm7x27_reserve,
 	.init_irq	= msm7x2x_init_irq,
 	.init_machine	= msm7x2x_init,
 	.timer		= &msm_timer,
