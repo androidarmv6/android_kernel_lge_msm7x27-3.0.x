@@ -59,7 +59,7 @@ static void mcs7000_late_resume(struct early_suspend *h);
  * 2011-01-19, by jinkyu.choi@lge.com
  */
 
-#if defined (CONFIG_MACH_MSM7X27_JUMP) || defined(CONFIG_MACH_MSM7X27_PECAN) 
+#if defined(CONFIG_MACH_MSM7X27_PECAN) 
 #define SUPPORT_TOUCH_KEY 1
 #else
 #define SUPPORT_TOUCH_KEY 0
@@ -72,11 +72,8 @@ static void mcs7000_late_resume(struct early_suspend *h);
 #define TOUCH_BACK      248
 #endif
 
-#if defined(CONFIG_MACH_MSM7X27_PECAN) 
 #define TS_SAMPLERATE_HZ 100
-#else
 #define TS_POLLING_TIME 0 /* msec */
-#endif
 
 #define DEBUG_TS 0 /* enable or disable debug message */
 
@@ -179,7 +176,7 @@ static __inline void mcs7000_key_event_touch(int touch_reg,  int value,  struct 
 {
 	unsigned int keycode;
 
-#if defined(CONFIG_MACH_MSM7X27_PECAN) || defined(CONFIG_MACH_MSM7X27_HAZEL)
+#if defined(CONFIG_MACH_MSM7X27_PECAN)
 	if (touch_reg == KEY_BACK_TOUCHED) {
 		keycode = KEY_BACK;
 	} else if (touch_reg == KEY_MENU_TOUCHED) {
@@ -193,7 +190,7 @@ static __inline void mcs7000_key_event_touch(int touch_reg,  int value,  struct 
 		printk("%s Not available touch key reg. %d\n", __FUNCTION__, touch_reg);
 		return;
 	} 
-#else // Thunder
+#else
 	if (touch_reg == KEY1_TOUCHED) {
 		keycode = TOUCH_SEARCH;
 	} else if (touch_reg == KEY2_TOUCHED) {
@@ -730,20 +727,12 @@ static ssize_t read_touch_version(struct device *dev, struct device_attribute *a
 	unsigned char hw_ver, fw_ver;
 
 	if (is_downloading == 1) {
-#if defined(CONFIG_MACH_MSM7X27_PECAN) || defined(CONFIG_MACH_MSM7X27_MUSCAT) 
 		r = sprintf(buf,"Now, MCS7000 Firmware Update is going, check it later\n ");
-#else
-		r = sprintf(buf,"Now, MCS7000 Firmware Update is going, check it later\n ");
-#endif
 		return r;
 	}
 
 	mcs7000_firmware_info(&fw_ver, &hw_ver);
-#if defined(CONFIG_MACH_MSM7X27_PECAN) || defined(CONFIG_MACH_MSM7X27_MUSCAT) 
 	r = sprintf(buf,"MCS7000 Touch Version HW:%02x FW:%02x\n",hw_ver, fw_ver);
-#else
-	r = sprintf(buf,"MCS7000 Touch Version HW:%02x FW:%02x\n",hw_ver, fw_ver);
-#endif
 
 	return r;
 }
