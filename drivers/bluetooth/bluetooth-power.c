@@ -26,6 +26,7 @@
 
 static struct bluetooth_platform_data *bt_platform_data = 0;
 #else /* origin */
+static bool previous;
 static int bluetooth_toggle_radio(void *data, bool blocked)
 {
 	int ret = 0;
@@ -40,8 +41,6 @@ static int bluetooth_toggle_radio(void *data, bool blocked)
 }
 
 #endif
-
-static bool previous;
 
 /* LGE_CHANGES_S [taekeun1.kim@lge.com] 2010-06-06, for bt */
 #if defined (CONFIG_MACH_LGE)
@@ -72,7 +71,9 @@ static int bluetooth_power_rfkill_probe(struct platform_device *pdev)
 
 	/* force Bluetooth off during init to allow for user control */
 	rfkill_init_sw_state(rfkill, 1);
+#if !defined (CONFIG_MACH_LGE)
 	previous = 1;
+#endif
 
 	ret = rfkill_register(rfkill);
 	if (ret) {
