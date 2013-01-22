@@ -92,10 +92,12 @@ struct display_table2 {
 #define REGFLAG_DELAY             0XFFFE
 #define REGFLAG_END_OF_TABLE      0xFFFF   // END OF REGISTERS MARKER
 
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 static struct display_table mddi_hitachi_2c[] = {
 	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
+#endif
 
 static struct display_table mddi_hitachi_position_table[] = {
 	// set column address 
@@ -105,6 +107,7 @@ static struct display_table mddi_hitachi_position_table[] = {
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
 
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 static struct display_table mddi_hitachi_display_on_1st[] = {
 	// Display on sequence
 	{0x11, 4, {0x00, 0x00, 0x00, 0x00}},
@@ -114,6 +117,8 @@ static struct display_table mddi_hitachi_display_on_1st[] = {
 	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
+#endif
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC)
 static struct display_table mddi_hitachi_display_on_3rd[] = {
 	// Display on sequence
 	{0x11, 4, {0x00, 0x00, 0x00, 0x00}},
@@ -121,6 +126,7 @@ static struct display_table mddi_hitachi_display_on_3rd[] = {
 	{0x29, 4, {0x00, 0x00, 0x00, 0x00}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
+#endif
 
 #if 0
 static struct display_table2 mddi_hitachi_img[] = {
@@ -159,6 +165,7 @@ static struct display_table mddi_hitachi_sleep_mode_on_data[] = {
 #endif
  //LGE_E mahesh.kamarnat@lge.com -- LCD Patch
 
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 static struct display_table mddi_hitachi_initialize_1st[] = {
 
 	// Power ON Sequence 
@@ -223,6 +230,7 @@ static struct display_table mddi_hitachi_initialize_1st[] = {
 	{0x2c,  4, {0x00, 0x00, 0x00, 0x00}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
+#endif
 
 #ifdef CONFIG_MACH_MSM7X27_THUNDERC
 static struct display_table mddi_hitachi_initialize_3rd_vs660[] = {
@@ -526,7 +534,7 @@ static void mddi_hitachi_lcd_vsync_detected(boolean detected)
 	}
 #endif
 }
-
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 static void hitachi_workaround(void)
 {
 	if (lge_bd_rev <= LGE_REV_E) {
@@ -542,6 +550,7 @@ static void hitachi_workaround(void)
 	display_table(mddi_hitachi_position_table,
 				  sizeof(mddi_hitachi_position_table) / sizeof(struct display_table));
 }
+#endif
 
 static int mddi_hitachi_lcd_on(struct platform_device *pdev)
 {
@@ -571,7 +580,7 @@ static int mddi_hitachi_lcd_on(struct platform_device *pdev)
 			sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
 	display_table(mddi_hitachi_display_on_1st,
 			sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
-#else
+#elif defined(CONFIG_MACH_MSM7X27_THUNDERC)
 	if (lge_bd_rev <= LGE_REV_D) {
 		EPRINTK("ThunderC ==> lge_bd_rev = %d : 1st LCD initial\n", lge_bd_rev);
 		display_table(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
@@ -614,7 +623,7 @@ static int mddi_hitachi_lcd_store_on(void)
 	mdelay(200);
 	display_table(mddi_hitachi_display_on_1st,
 			sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
-#else
+#elif defined(CONFIG_MACH_MSM7X27_THUNDERC)
 	if (lge_bd_rev <= LGE_REV_D) {
 		display_table(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
 		mdelay(200);
@@ -838,8 +847,11 @@ static void mddi_hitachi_lcd_panel_store_poweron(void)
   */
 static void mddi_hitachi_lcd_panel_poweroff(void)
 {
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 	struct msm_panel_hitachi_pdata *pdata = mddi_hitachi_pdata;
-
+#else
+	struct msm_panel_common_pdata *pdata = mddi_hitachi_pdata;
+#endif
 	EPRINTK("%s: started.\n", __func__);
 
 	fb_width = 320;

@@ -231,7 +231,7 @@ int mddi_client_power(unsigned int client_id);
 void mddi_disable(int lock);
 void mddi_window_adjust(struct msm_fb_data_type *mfd,
 	uint16 x1, uint16 x2, uint16 y1, uint16 y2);
-#ifdef CONFIG_MACH_LGE
+#if 1 //defined(CONFIG_MACH_LGE)
 void mddi_host_register_cmds_write8(unsigned reg_addr, unsigned count,
   unsigned char reg_val[], boolean wait, mddi_llist_done_cb_type done_cb,
   mddi_host_type host);
