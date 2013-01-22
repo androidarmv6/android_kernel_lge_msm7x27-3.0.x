@@ -2022,6 +2022,7 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		goto out;
 
 	/*Primary Vsync interrupt*/
+#ifdef CONFIG_FB_MSM_MDP303
 	if (mdp_interrupt & MDP_PRIM_RDPTR) {
 		spin_lock_irqsave(&mdp_spin_lock, flag);
 		vsync_isr = vsync_cntrl.vsync_irq_enabled;
@@ -2041,6 +2042,7 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 
 		complete_all(&vsync_cntrl.vsync_wait);
 	}
+#endif
 
 	/* DMA3 TV-Out Start */
 	if (mdp_interrupt & TV_OUT_DMA3_START) {
@@ -2335,6 +2337,7 @@ static int mdp_off(struct platform_device *pdev)
 
 	ret = panel_next_early_off(pdev);
 
+#ifdef CONFIG_FB_MSM_MDP40
 	if (mfd->panel.type == MIPI_CMD_PANEL)
 		mdp4_dsi_cmd_off(pdev);
 	else if (mfd->panel.type == MIPI_VIDEO_PANEL)
@@ -2345,6 +2348,7 @@ static int mdp_off(struct platform_device *pdev)
 		mdp4_lcdc_off(pdev);
 	else if (mfd->panel.type == WRITEBACK_PANEL)
 		mdp4_overlay_writeback_off(pdev);
+#endif
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	ret = panel_next_off(pdev);
@@ -2397,7 +2401,7 @@ static int mdp_on(struct platform_device *pdev)
 	ret = panel_next_on(pdev);
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 
-
+#ifdef CONFIG_FB_MSM_MDP40
 	if (mdp_rev >= MDP_REV_40) {
 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 		mdp_clk_ctrl(1);
@@ -2419,7 +2423,9 @@ static int mdp_on(struct platform_device *pdev)
 		mdp4_overlay_reset();
 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 	}
+#endif
 
+#ifdef CONFIG_FB_MSM_MDP303
 	if (mdp_rev == MDP_REV_303 && mfd->panel.type == MIPI_CMD_PANEL) {
 
 		vsync_cntrl.dev = mfd->fbi->dev;
