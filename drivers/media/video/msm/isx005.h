@@ -95,7 +95,7 @@ enum isx005_wb_type {
 	CAMERA_WB_CLOUDY_DAYLIGHT,
 	CAMERA_WB_TWILIGHT,
 	CAMERA_WB_SHADE,
-	CAMERA_WB_MAX_PLUS_1
+	CAMERA_WB_MAX_PLUS_1,
 };
 
 enum isx005_antibanding_type {
