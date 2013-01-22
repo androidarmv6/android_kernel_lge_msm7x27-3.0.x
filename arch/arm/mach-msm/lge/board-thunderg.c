@@ -414,6 +414,13 @@ static void msm7x27_wlan_init(void)
 	}
 }
 
+
+static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
+	.p_addr = 0,
+};
+
+
 /* decrease FB pmem size because thunderg uses hvga
  * qualcomm's original value depends on wvga resolution
  * 2010-04-18, cleaneye.kim@lge.com
@@ -430,12 +437,7 @@ static void __init msm7x2x_init(void)
 			&msm_device_uart3.dev, 1);
 #endif
 
-	if (cpu_is_msm7x27())
-		acpuclk_init(&acpuclk_7x27_soc_data);
-	else
-		acpuclk_init(&acpuclk_7201_soc_data);
-
-	msm_acpu_clock_init(&msm7x2x_clock_data);
+	acpuclk_init(&acpuclk_7x27_soc_data);
 
 	msm_add_pmem_devices();
 	msm_add_fb_device();
@@ -487,7 +489,8 @@ static void __init msm7x2x_map_io(void)
 {
 	msm_map_common_io();
 
-	msm_msm7x2x_allocate_memory_regions();
+	// Will be replaced by MACHINE_START.reserve = msm7x27_reserve,
+	// msm_msm7x2x_allocate_memory_regions();
 
 	if (socinfo_init() < 0)
 		BUG();
@@ -504,10 +507,10 @@ static void __init msm7x2x_map_io(void)
 MACHINE_START(MSM7X27_THUNDERG, "THUNDER Global board (LGE LGP500)")
 	.boot_params		= PLAT_PHYS_OFFSET + 0x100,
 	.map_io			= msm7x2x_map_io,
-	.reserve		= msm7x27_reserve,
+// DEFINED IN BOARD-MSM7x27	.reserve		= msm7x27_reserve,
 	.init_irq		= msm7x2x_init_irq,
 	.init_machine		= msm7x2x_init,
 	.timer			= &msm_timer,
-	.init_early		= msm7x27_init_early,
+// DEFINED IN BOARD-MSM7x27	.init_early		= msm7x27_init_early,
 	.handle_irq		= vic_handle_irq,
 MACHINE_END

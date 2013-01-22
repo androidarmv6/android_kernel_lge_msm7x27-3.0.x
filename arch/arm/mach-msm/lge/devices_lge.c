@@ -244,13 +244,6 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.memory_type = MEMTYPE_EBI1,
 };
 
-static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-	.memory_type = MEMTYPE_EBI1,
-};
-
 static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
 	.id = 0,
@@ -263,20 +256,13 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
-static struct platform_device android_pmem_audio_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_audio_pdata },
-};
-
 static struct platform_device *pmem_devices[] __initdata = {
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_audio_device,
 };
 
 static unsigned pmem_kernel_ebi1_size = PMEM_KERNEL_EBI1_SIZE;
-static void __init pmem_kernel_ebi1_size_setup(char *p)
+static int __init pmem_kernel_ebi1_size_setup(char *p)
 {
 	pmem_kernel_ebi1_size = memparse(p, NULL);
 	return 0;
@@ -289,7 +275,7 @@ static int __init pmem_mdp_size_setup(char *p)
 	pmem_mdp_size = memparse(p, NULL);
 	return 0;
 }
-early_param("pmem_mdp_size=", pmem_mdp_size_setup);
+early_param("pmem_mdp_size", pmem_mdp_size_setup);
 
 static unsigned pmem_adsp_size = MSM_PMEM_ADSP_SIZE;
 static int __init pmem_adsp_size_setup(char *p)
@@ -297,15 +283,7 @@ static int __init pmem_adsp_size_setup(char *p)
 	pmem_adsp_size = memparse(p, NULL);
 	return 0;
 }
-early_param("pmem_adsp_size=", pmem_adsp_size_setup);
-
-static unsigned pmem_audio_size = MSM_PMEM_AUDIO_SIZE;
-static int __init pmem_audio_size_setup(char *p)
-{
-	pmem_audio_size = memparse(p, NULL);
-	return 0;
-}
-early_param("pmem_audio_size", pmem_audio_size_setup);
+early_param("pmem_adsp_size", pmem_adsp_size_setup);
 
 static unsigned pmem_fb_size = MSM_FB_SIZE;
 static int __init fb_size_setup(char *p)
@@ -313,7 +291,7 @@ static int __init fb_size_setup(char *p)
 	pmem_fb_size = memparse(p, NULL);
 	return 0;
 }
-early_param("pmem_fb_size=", fb_size_setup);
+early_param("pmem_fb_size", fb_size_setup);
 
 void __init msm_msm7x2x_allocate_memory_regions(void)
 {
@@ -344,7 +322,6 @@ static void __init size_pmem_devices(void)
 #ifdef CONFIG_ANDROID_PMEM
 	android_pmem_adsp_pdata.size = pmem_adsp_size;
 	android_pmem_pdata.size = pmem_mdp_size;
-	android_pmem_audio_pdata.size = pmem_audio_size;
 #endif
 }
 
@@ -358,7 +335,6 @@ static void __init reserve_pmem_memory(void)
 #ifdef CONFIG_ANDROID_PMEM
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
-	reserve_memory_for(&android_pmem_audio_pdata);
 	msm7x27_reserve_table[MEMTYPE_EBI1].size += pmem_kernel_ebi1_size;
 #endif
 }
@@ -430,7 +406,7 @@ __WEAK struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	.idle_enabled = 1,
 	.latency = 2000,
 	.residency = 0,
-	
+	}
 };
 
 #ifdef CONFIG_USB_G_ANDROID
