@@ -212,9 +212,7 @@ obj-$(CONFIG_MACH_MSM8X60_FUSN_FFA) += board-msm8x60.o mdm.o
 obj-$(CONFIG_TROUT_H2W) += board-trout-h2w.o
 obj-$(CONFIG_TROUT_BATTCHG) += htc_battery.o
 obj-$(CONFIG_TROUT_PWRSINK) += htc_pwrsink.o
-obj-$(CONFIG_ARCH_MSM7X27) += devices-msm7x27.o clock-pcom-lookup.o
-obj-$(CONFIG_MACH_MSM7X27_SURF) += board-msm7x27.o devices-msm7x27.o
-obj-$(CONFIG_MACH_MSM7X27_FFA) += board-msm7x27.o devices-msm7x27.o
+
 obj-$(CONFIG_ARCH_MSM7X27A) += clock-pcom-lookup.o devices-msm7x27a.o
 obj-$(CONFIG_MACH_MSM7X27A_RUMI3) += board-msm7x27a.o board-msm7627a-storage.o board-msm7627a-bt.o board-msm7627a-camera.o
 obj-$(CONFIG_MACH_MSM7X27A_SURF) += board-msm7x27a.o board-msm7627a-storage.o board-msm7627a-bt.o board-msm7627a-camera.o
@@ -320,4 +318,61 @@ obj-$(CONFIG_MSM_RTB) += msm_rtb.o
 obj-$(CONFIG_MSM_CACHE_ERP) += cache_erp.o
 obj-$(CONFIG_MSM_CACHE_DUMP) += msm_cache_dump.o
 obj-$(CONFIG_MSM_CPU_PWRCTL) +=  msm_cpu_pwrctl.o
-obj-$(CONFIG_MACH_LGE) += lge/
+
+
+
+
+
+
+
+
+
+
+
+################
+# LGE MAKEFILE #
+################
+EXTRA_CFLAGS 				+= -Iarch/arm/mach-msm
+
+obj-$(CONFIG_ARCH_MSM7X27)		+= clock-pcom-lookup.o
+obj-$(CONFIG_ARCH_MSM7X27)		+= lge_board-msm7x27.o
+obj-$(CONFIG_ARCH_MSM7X27)		+= lge_devices-msm7x27.o
+
+obj-$(CONFIG_LGE_HEADSET_2GPIO) 	+= lge_gpio_h2w.o
+obj-$(CONFIG_LGE_SWITCH_GPIO) 		+= lge_gpio_switch.o
+obj-$(CONFIG_LGE_HANDLE_PANIC) 		+= lge_handle_panic.o
+obj-$(CONFIG_LGE_BLUE_ERROR_HANDLER) 	+= lge_errorhandler.o
+obj-$(CONFIG_LGE_PROC_COMM)		+= lge_proc_comm.o
+obj-$(CONFIG_LGE_SUPPORT_ERS) 		+= lge_ers.o
+obj-$(CONFIG_LGE_SUPPORT_RAPI) 		+= LG_rapi_client.o
+obj-$(CONFIG_LGE_MTD_DIRECT_ACCESS) 	+= lge_mtd_direct_access.o 	#need this rather than emmc direct access, maybe this was problem on previous builds?
+obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_diag_testmode.o
+obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_fw_diag_class.o
+obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_fw_diag_communication.o
+
+obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_diag_event_log.o		# add lg_diag_event_log.c for key logging in diag testmode test 2010-07-10
+obj-$(CONFIG_LGE_DIAGTEST)		+= lg_diag_keypress.o		# add lg_diag_keypress.c for UTS test by younchan.kim 2010-06-11
+obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_diag_screen_shot.o	# add lg_diag_screen_shot.c for UTS test by minjong.gong 2010-06-13
+#obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_fw_diag_mtc.o
+#obj-$(CONFIG_LGE_DIAGTEST) 		+= lg_diag_wifi.o
+
+#obj-$(CONFIG_LGE_SUPPORT_AT_CMD) 	+= lge_ats.o
+#obj-$(CONFIG_LGE_SUPPORT_AT_CMD) 	+= lge_ats_cmd.o
+#obj-$(CONFIG_LGE_SUPPORT_AT_CMD) 	+= lge_ats_eta.o
+#obj-$(CONFIG_LGE_SUPPORT_AT_CMD) 	+= lge_ats_mmc.o
+#obj-$(CONFIG_LGE_SUPPORT_AT_CMD) 	+= lge_ats_event_log.o
+#obj-$(CONFIG_LGE_ATS_UEVENT_DEVICE) 	+= lge_ats_uevent.o
+obj-$(CONFIG_LGE_ATS_INPUT_DEVICE) 	+= lge_ats_input.o
+#obj-$(CONFIG_LGE_DIAG_WMC) 		+= lg_diag_wmc.o
+#obj-$(CONFIG_LGE_SUPPORT_AT_CMD) 	+= lge_ats_flex.o		# LGE_CHANGE [irene.park@lge.com] 2010-06-04 - to get flex value from ARM9
+#obj-$(CONFIG_LGE_PWRSINK)		+= lge_pwrsink.o
+#obj-$(CONFIG_LGE_FACTORY_PATCH)	+= lge_temp.o lge_mtd_direct_access.o
+
+#from .38
+obj-$(CONFIG_LGE_DIAGTEST)		+= lg_diag_unifiedmsgtool.o
+obj-$(CONFIG_LGE_DIAG_UDM)		+= lg_diag_udm.o
+obj-$(CONFIG_LGE_FACTORY)		+= userDataBackUpDiag.o
+obj-$(CONFIG_LGE_FACTORY)		+= lge_diag_eri.o
+obj-$(CONFIG_LGE_FACTORY)		+= lg_diag_dload.o
+obj-$(CONFIG_LGE_ERROR_HANDLER)		+= lge_test.o
+
