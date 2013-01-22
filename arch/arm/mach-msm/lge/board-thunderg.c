@@ -60,7 +60,8 @@
 #include "devices.h"
 #include "clock.h"
 #include "msm-keypad-devices.h"
-#include "pm.h"
+#include "../pm.h"
+#include "../pm-boot.h"
 #include "../acpuclock.h"
 #ifdef CONFIG_ARCH_MSM7X27
 #include <linux/msm_kgsl.h>
@@ -82,28 +83,6 @@
  */
 extern struct msm_pm_platform_data msm7x25_pm_data[MSM_PM_SLEEP_MODE_NR];
 extern struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR];
-#if 0
-struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR] = {
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].supported = 1,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].suspend_enabled = 1,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].idle_enabled = 1,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].latency = 16000,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].residency = 20000,
-
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].supported = 1,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].suspend_enabled = 1,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].idle_enabled = 1,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].latency = 12000,
-	[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].residency = 20000,
-
-	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].supported = 1,
-	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].suspend_enabled
-		= 1,
-	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].idle_enabled = 1,
-	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency = 2000,
-	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].residency = 0,
-};
-#endif
 
 /* board-specific usb data definitions */
 /* QCT originals are in device_lge.c, not here */
@@ -482,6 +461,9 @@ static void __init msm7x2x_init(void)
 	else
 		msm_pm_set_platform_data(msm7x25_pm_data,
 					ARRAY_SIZE(msm7x25_pm_data));
+
+	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
+
 	msm7x27_wlan_init();
 
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
@@ -520,12 +502,12 @@ static void __init msm7x2x_map_io(void)
 }
 
 MACHINE_START(MSM7X27_THUNDERG, "THUNDER Global board (LGE LGP500)")
-#ifdef CONFIG_MSM_DEBUG_UART
-#endif
-	.boot_params		= PHYS_OFFSET + 0x100,
+	.boot_params		= PLAT_PHYS_OFFSET + 0x100,
 	.map_io			= msm7x2x_map_io,
 	.reserve		= msm7x27_reserve,
 	.init_irq		= msm7x2x_init_irq,
 	.init_machine		= msm7x2x_init,
 	.timer			= &msm_timer,
+	.init_early		= msm7x27_init_early,
+	.handle_irq		= vic_handle_irq,
 MACHINE_END
