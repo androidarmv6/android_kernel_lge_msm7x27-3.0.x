@@ -172,10 +172,10 @@ obj-$(CONFIG_MSM_VIDC_1080P) += vidc/
 obj-$(CONFIG_MSM_VIDC_720P) += vidc/
 
 #else
-#obj-$(CONFIG_FB_MSM_EBI2) += ebi2_host.o
-#obj-$(CONFIG_FB_MSM_EBI2) += ebi2_lcd.o
-#obj-y += msm_fb_panel.o
-#obj-$(CONFIG_FB_MSM_EBI2_EPSON_S1D_QVGA_PANEL) += ebi2_epson_s1d_qvga.o
+obj-$(CONFIG_FB_MSM_EBI2) += ebi2_host.o
+obj-$(CONFIG_FB_MSM_EBI2) += ebi2_lcd.o
+obj-y += msm_fb_panel.o
+obj-$(CONFIG_FB_MSM_EBI2_EPSON_S1D_QVGA_PANEL) += ebi2_epson_s1d_qvga.o
 #endif
 
 clean:
