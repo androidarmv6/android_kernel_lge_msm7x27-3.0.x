@@ -427,7 +427,11 @@ static int msm_fb_probe(struct platform_device *pdev)
 	mfd->overlay_play_enable = 1;
 #endif
 
+#ifdef CONFIG_FB_MSM_MDP40
 	bf_supported = mdp4_overlay_borderfill_supported();
+#else
+	bf_supported = false;
+#endif
 
 	rc = msm_fb_register(mfd);
 	if (rc)
@@ -2063,10 +2067,13 @@ static void msm_fb_commit_wq_handler(struct work_struct *work)
 	mfd = container_of(work, struct msm_fb_data_type, commit_work);
 	fb_backup = (struct msm_fb_backup_type *)mfd->msm_fb_backup;
 	info = &fb_backup->info;
+#ifdef CONFIG_FB_MSM_MDP40
 	if (fb_backup->disp_commit.flags &
 		MDP_DISPLAY_COMMIT_OVERLAY) {
 			mdp4_overlay_commit(info);
-	} else {
+	} else
+#endif
+	{
 		var = &fb_backup->disp_commit.var;
 		msm_fb_pan_display_sub(var, info);
 	}
