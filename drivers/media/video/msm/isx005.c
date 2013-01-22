@@ -586,7 +586,7 @@ static int isx005_move_focus(int32_t steps)
 	return rc;
 }
 
-static int isx005_set_default_focus()
+static int isx005_set_default_focus(void)
 {
 	int rc;
 
