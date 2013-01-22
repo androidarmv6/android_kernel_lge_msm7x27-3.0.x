@@ -825,9 +825,9 @@ gp2ap_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	if (GP2AP_DEBUG_GEN_INFO & gp2ap_debug_mask)
 		PROXD("i2c client addr(0x%x)\n", gp2ap_pdev->client->addr);
 
-	ret = set_irq_wake(gp2ap_pdev->irq, 1);
+	ret = irq_set_irq_wake(gp2ap_pdev->irq, 1);
         if (ret)
-		set_irq_wake(gp2ap_pdev->irq, 0);
+		irq_set_irq_wake(gp2ap_pdev->irq, 0);
 	/* create sysfs attribute files */
 	for (i = 0; i < ARRAY_SIZE(gp2ap_device_attrs); i++) {
 		ret = device_create_file(&client->dev, &gp2ap_device_attrs[i]);
@@ -867,7 +867,7 @@ gp2ap_i2c_remove(struct i2c_client *client)
 	if (GP2AP_DEBUG_FUNC_TRACE & gp2ap_debug_mask)
 		PROXD("entry\n");
 
-	set_irq_wake(gp2ap_pdev->irq, 0);
+	irq_set_irq_wake(gp2ap_pdev->irq, 0);
 
 	free_irq(pdev->irq, NULL);
 	input_unregister_device(pdev->input_dev);
@@ -919,7 +919,7 @@ gp2ap_suspend(struct i2c_client *i2c_dev, pm_message_t state)
 	/* turn off power supply */
 	pdata->power(0);
 
-	set_irq_wake(pdev->irq, 0);
+	irq_set_irq_wake(pdev->irq, 0);
 
 	if (GP2AP_DEBUG_FUNC_TRACE & gp2ap_debug_mask)
 		PROXD("exit\n");
@@ -1033,9 +1033,9 @@ gp2ap_resume(struct i2c_client *i2c_dev)
 
 	pdev->sw_mode = PROX_STAT_OPERATING;
 
-	ret = set_irq_wake(pdev->irq, 1);
+	ret = irq_set_irq_wake(pdev->irq, 1);
         if (ret)
-		set_irq_wake(pdev->irq, 0);
+		irq_set_irq_wake(pdev->irq, 0);
 
 	if (GP2AP_DEBUG_FUNC_TRACE & gp2ap_debug_mask)
 		PROXD("exit\n");
