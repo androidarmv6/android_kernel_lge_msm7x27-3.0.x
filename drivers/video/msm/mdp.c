@@ -1831,8 +1831,10 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		goto out;
 
 	/*Primary Vsync interrupt*/
+#ifdef CONFIG_FB_MSM_MDP303
 	if (mdp_interrupt & MDP_PRIM_RDPTR)
 		vsync_isr_handler();
+#endif
 
 	/* DMA3 TV-Out Start */
 	if (mdp_interrupt & TV_OUT_DMA3_START) {
@@ -1878,9 +1880,10 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 				dma->waiting = FALSE;
 				complete(&dma->comp);
 			}
-
+#ifdef CONFIG_FB_MSM_MDP303
 			if (vsync_cntrl.vsync_irq_enabled)
 				vsync_isr_handler();
+#endif
 
 			if (!vsync_cntrl.vsync_irq_enabled && !(dma->waiting)) {
 				mdp_intr_mask &= ~LCDC_FRAME_START;
@@ -1945,6 +1948,7 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		}
 	}
 
+out:
 	mdp_is_in_isr = FALSE;
 
 	return IRQ_HANDLED;
@@ -2095,6 +2099,8 @@ static int mdp_off(struct platform_device *pdev)
 	mdp_histogram_ctrl_all(FALSE);
 
 	mdp_clk_ctrl(1);
+
+#ifdef CONFIG_FB_MSM_MDP40
 	if (mfd->panel.type == MIPI_CMD_PANEL)
 		mdp4_dsi_cmd_off(pdev);
 	else if (mfd->panel.type == MIPI_VIDEO_PANEL)
@@ -2105,6 +2111,7 @@ static int mdp_off(struct platform_device *pdev)
 		mdp4_lcdc_off(pdev);
 	else if (mfd->panel.type == MDDI_PANEL)
 		mdp4_mddi_off(pdev);
+#endif
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	ret = panel_next_off(pdev);
@@ -2140,20 +2147,30 @@ static int mdp_on(struct platform_device *pdev)
 	if (mdp_rev >= MDP_REV_40) {
 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 		mdp_clk_ctrl(1);
+#ifdef CONFIG_FB_MSM_MDP40
 		mdp4_hw_init();
+#endif
 		outpdw(MDP_BASE + 0x0038, mdp4_display_intf);
 		if (mfd->panel.type == MIPI_CMD_PANEL) {
 			mdp_vsync_cfg_regs(mfd, FALSE);
+#ifdef CONFIG_FB_MSM_MDP40
 			mdp4_dsi_cmd_on(pdev);
+#endif
 		} else if (mfd->panel.type == MIPI_VIDEO_PANEL) {
+#ifdef CONFIG_FB_MSM_MDP40
 			mdp4_dsi_video_on(pdev);
+#endif
 		} else if (mfd->panel.type == HDMI_PANEL ||
 				mfd->panel.type == LCDC_PANEL ||
 				mfd->panel.type == LVDS_PANEL) {
+#ifdef CONFIG_FB_MSM_MDP40
 			mdp4_lcdc_on(pdev);
+#endif
 		} else if (mfd->panel.type == MDDI_PANEL) {
 			mdp_vsync_cfg_regs(mfd, FALSE);
+#ifdef CONFIG_FB_MSM_MDP40
 			mdp4_mddi_on(pdev);
+#endif
 		}
 
 		mdp_clk_ctrl(0);
@@ -2509,8 +2526,10 @@ static int mdp_probe(struct platform_device *pdev)
 			  mdp_vsync_resync_workqueue_handler);
 		mfd->hw_refresh = FALSE;
 
+#ifdef CONFIG_FB_MSM_MDP40
 		if(mfd->panel.type == MDDI_PANEL)
 			mdp4_mddi_rdptr_init(0);
+#endif
 
 		if (mfd->panel.type == EXT_MDDI_PANEL) {
 			/* 15 fps -> 66 msec */
@@ -2923,7 +2942,9 @@ static void mdp_early_suspend(struct early_suspend *h)
 #ifdef CONFIG_FB_MSM_DTV
 	mdp4_dtv_set_black_screen();
 #endif
+#ifdef CONFIG_FB_MSM_MDP40
 	mdp4_iommu_detach();
+#endif
 	mdp_footswitch_ctrl(FALSE);
 }
 
