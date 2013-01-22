@@ -95,7 +95,8 @@ enum isx005_wb_type {
 	CAMERA_WB_CLOUDY_DAYLIGHT,
 	CAMERA_WB_TWILIGHT,
 	CAMERA_WB_SHADE,
-	CAMERA_WB_MAX_PLUS_1
+	CAMERA_WB_MAX_PLUS_1,
+	CAMERA_MAX_ANTIBANDING,
 };
 
 enum isx005_antibanding_type {
@@ -103,7 +104,6 @@ enum isx005_antibanding_type {
 	CAMERA_ANTIBANDING_60HZ,
 	CAMERA_ANTIBANDING_50HZ,
 	CAMERA_ANTIBANDING_AUTO,
-	CAMERA_MAX_ANTIBANDING,
 };
 
 /* Enum Type for different ISO Mode supported */
