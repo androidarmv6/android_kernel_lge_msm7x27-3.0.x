@@ -168,31 +168,3 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
 #video output switch sysfs driver
 obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
 
-# MSM FB Panel for older LG devices
-obj-y += msm_fb_panel.o
-obj-$(CONFIG_FB_MSM_EBI2_TMD_QVGA_EPSON_QCIF) += ebi2_tmd20.o
-obj-$(CONFIG_FB_MSM_EBI2_TMD_QVGA_EPSON_QCIF) += ebi2_l2f.o
-
-ifeq ($(CONFIG_FB_MSM_MDDI_AUTO_DETECT),y)
-obj-y += mddi_prism.o
-obj-y += mddi_toshiba.o
-obj-y += mddi_toshiba_vga.o
-obj-y += mddi_toshiba_wvga_pt.o
-obj-y += mddi_toshiba_wvga.o
-obj-y += mddi_sharp.o
-obj-y += mddi_orise.o
-obj-y += mddi_quickvx.o
-obj-y += mddi_hitachi_hvga.o
-obj-y += mddi_novatek_hvga.o
-else
-obj-$(CONFIG_FB_MSM_MDDI_PRISM_WVGA) += mddi_prism.o
-obj-$(CONFIG_FB_MSM_MDDI_TOSHIBA_COMMON) += mddi_toshiba.o
-obj-$(CONFIG_FB_MSM_MDDI_TOSHIBA_COMMON_VGA) += mddi_toshiba_vga.o
-obj-$(CONFIG_FB_MSM_MDDI_TOSHIBA_WVGA_PORTRAIT) += mddi_toshiba_wvga_pt.o
-obj-$(CONFIG_FB_MSM_MDDI_TOSHIBA_WVGA) += mddi_toshiba_wvga.o
-obj-$(CONFIG_FB_MSM_MDDI_SHARP_QVGA_128x128) += mddi_sharp.o
-obj-$(CONFIG_FB_MSM_MDDI_ORISE) += mddi_orise.o
-obj-$(CONFIG_FB_MSM_MDDI_QUICKVX) += mddi_quickvx.o
-obj-$(CONFIG_FB_MSM_MDDI_HITACHI_HVGA) += mddi_hitachi_hvga.o
-obj-$(CONFIG_FB_MSM_MDDI_NOVATEK_HVGA) += mddi_novatek_hvga.o
-endif
