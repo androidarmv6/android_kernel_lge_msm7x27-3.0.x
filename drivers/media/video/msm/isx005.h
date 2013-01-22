@@ -87,7 +87,7 @@ enum isx005_focus_mode {
 /* this value is defined in Android native camera */
 enum isx005_wb_type {
 	CAMERA_WB_MIN_MINUS_1,
-	CAMERA_WB_AUTO = 1,  /* This list must match aeecamera.h */
+	//CAMERA_WB_AUTO = 1,  /* This list must match aeecamera.h */
 	CAMERA_WB_CUSTOM,
 	CAMERA_WB_INCANDESCENT,
 	CAMERA_WB_FLUORESCENT,
@@ -99,7 +99,7 @@ enum isx005_wb_type {
 };
 
 enum isx005_antibanding_type {
-	CAMERA_ANTIBANDING_OFF,
+	//CAMERA_ANTIBANDING_OFF,
 	CAMERA_ANTIBANDING_60HZ,
 	CAMERA_ANTIBANDING_50HZ,
 	CAMERA_ANTIBANDING_AUTO,
