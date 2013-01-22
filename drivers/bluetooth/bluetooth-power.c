@@ -20,14 +20,16 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 #include <linux/rfkill.h>
-
 #if defined (CONFIG_MACH_LGE)
 #include <mach/board_lge.h>
+#endif
+
+static bool previous;
+
+#if defined(CONFIG_MACH_LGE)
 
 static struct bluetooth_platform_data *bt_platform_data = 0;
 #else /* origin */
-
-static bool previous;
 
 static int bluetooth_toggle_radio(void *data, bool blocked)
 {
