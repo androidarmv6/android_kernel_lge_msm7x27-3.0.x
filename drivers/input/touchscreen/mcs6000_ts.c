@@ -656,13 +656,11 @@ static __inline int mcs6000_ts_ioctl_down_i2c_read(unsigned char addr,
 	return err;
 }
 
-int mcs6000_ts_ioctl_down(struct inode *inode, struct file *flip, unsigned int cmd, unsigned long arg)
+long mcs6000_ts_ioctl_down(struct file *flip, unsigned int cmd, unsigned long arg)
 {
-	int err = 0;
+	long err = 0;
 	struct mcs6000_ts_down_ioctl_i2c_type client_data;
-	struct mcs6000_ts_device *dev = NULL;
-
-	dev = &mcs6000_ts_dev;
+	struct mcs6000_ts_device *dev = &mcs6000_ts_dev;
 
 	//printk(KERN_INFO"%d\n", _IOC_NR(cmd));
 	if (_IOC_NR(cmd) >= MCS6000_TS_DOWN_IOCTL_MAXNR)
@@ -764,21 +762,20 @@ int mcs6000_ts_ioctl_down(struct inode *inode, struct file *flip, unsigned int c
 	return err;
 }
 
-static int mcs6000_ts_ioctl(struct inode *inode, struct file *flip,
-		     unsigned int cmd, unsigned long arg)
+static long mcs6000_ts_ioctl(struct file *flip, unsigned int cmd, unsigned long arg)
 {
-	int err = -1;
-	/* int size; */
+	long err = -1;
 
 	switch (_IOC_TYPE(cmd)) {
 		case MCS6000_TS_DOWN_IOCTL_MAGIC:
-			err = mcs6000_ts_ioctl_down(inode, flip, cmd, arg);
+			err = mcs6000_ts_ioctl_down(flip, cmd, arg);
 			break;
 		default:
 			printk(KERN_ERR "%s unknow ioctl\n", __FUNCTION__);
 			err = -EINVAL;
 			break;
 	}
+
 	return err;
 }
 
@@ -796,7 +793,7 @@ static int mcs6000_ioctl_release(struct inode *inode, struct file *flip) {
 
 static struct file_operations mcs6000_ts_ioctl_fops = {
 	.owner = THIS_MODULE,
-	.ioctl = mcs6000_ts_ioctl,
+	.unlocked_ioctl = mcs6000_ts_ioctl,
 	.open  = mcs6000_ioctl_open,
 	.release = mcs6000_ioctl_release,
 };
