@@ -3185,7 +3185,11 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 	case MSMFB_OVERLAY_VSYNC_CTRL:
 		down(&msm_fb_ioctl_ppp_sem);
 		if (mdp_rev >= MDP_REV_40)
+#ifdef CONFIG_FB_MSM_MDP303
 			ret = msmfb_overlay_vsync_ctrl(info, argp);
+#elif CONFIG_FB_MSM_MDP30
+			ret = -1; //ret = msmfb_overlay_vsync_ctrl(info, argp);
+#endif
 		else
 			ret = msmfb_vsync_ctrl(info, argp);
 		up(&msm_fb_ioctl_ppp_sem);
