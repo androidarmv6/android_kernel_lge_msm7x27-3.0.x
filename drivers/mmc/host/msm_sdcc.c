@@ -172,7 +172,7 @@ void register_mmc_card_pm(struct early_suspend *cardpm)
 		printk("%s: [WiFi] Callbacks registered successfully. \n",__FUNCTION__);
 	}
 	else
-		pr_infoprintk("%s: Error: Null pointer!! \n", __FUNCTION__);
+		printk("%s: Error: Null pointer!! \n", __FUNCTION__);
 }
 
 EXPORT_SYMBOL(register_mmc_card_pm);
@@ -5880,7 +5880,7 @@ msmsdcc_probe(struct platform_device *pdev)
 #else
 	if (host->pdev_id == BRCM_WLAN_SLOT){ 
 		mmc->f_max = 24576000;
-		printk("%s : slot set f_max [%ld]\n",mmc_hostname(host->mmc),mmc->f_max);
+		//printk("%s : slot set f_max [%ld]\n",mmc_hostname(host->mmc),mmc->f_max);
 	} else {
 		mmc->f_max = msmsdcc_get_max_sup_clk_rate(host);
 	}
