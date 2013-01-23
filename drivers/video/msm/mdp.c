@@ -1197,6 +1197,7 @@ error:
 }
 #endif
 
+#ifdef CONFIG_FB_MSM_MDP303
 static void send_vsync_work(struct work_struct *work)
 {
 	char buf[64];
@@ -1208,6 +1209,23 @@ static void send_vsync_work(struct work_struct *work)
 	envp[1] = NULL;
 	kobject_uevent_env(&(vsync_cntrl.dev->kobj), KOBJ_CHANGE, envp);
 }
+#endif
+
+/* vsync_isr_handler: Called from isr context*/
+#ifdef CONFIG_FB_MSM_MDP303
+static void vsync_isr_handler(void)
+{
+	vsync_cntrl.vsync_time = ktime_get();
+	schedule_work(&(vsync_cntrl.vsync_work));
+}
+#elif CONFIG_FB_MSM_MDP30
+static void vsync_isr_handler(void)
+{
+	vsync_cntrl.vsync_time = ktime_get();
+}
+
+/* Returns < 0 on error, 0 on timeout, or > 0 on successful wait */
+#endif
 
 void mdp3_vsync_irq_enable(int intr, int term)
 {
@@ -1236,15 +1254,6 @@ void mdp3_vsync_irq_disable(int intr, int term)
 	mdp_disable_irq(term);
 	spin_unlock_irqrestore(&mdp_spin_lock, flag);
 }
-
-//#ifdef CONFIG_FB_MSM_MDP303
-/* vsync_isr_handler: Called from isr context*/
-static void vsync_isr_handler(void)
-{
-	vsync_cntrl.vsync_time = ktime_get();
-	schedule_work(&(vsync_cntrl.vsync_work));
-}
-//#endif
 
 /* Returns < 0 on error, 0 on timeout, or > 0 on successful wait */
 int mdp_ppp_pipe_wait(void)
@@ -1620,6 +1629,7 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 {
 	uint32 mdp_interrupt = 0;
 	struct mdp_dma_data *dma;
+#ifdef CONFIG_FB_MSM_MDP303
 #ifndef CONFIG_FB_MSM_MDP22
 	struct mdp_hist_mgmt *mgmt = NULL;
 	char *base_addr;
@@ -1627,6 +1637,10 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 #endif
 	/* Ensure all the register write are complete */
 	mb();
+#elif CONFIG_FB_MSM_MDP30
+	int vsync_isr, disabled_clocks;
+	unsigned long flag;
+#endif
 
 	mdp_is_in_isr = TRUE;
 	do {
@@ -1643,9 +1657,36 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		if (!mdp_interrupt)
 			break;
 
+#ifdef CONFIG_FB_MSM_MDP303
 	/*Primary Vsync interrupt*/
 	if (mdp_interrupt & MDP_PRIM_RDPTR)
 		vsync_isr_handler();
+#elif CONFIG_FB_MSM_MDP30
+	    /*Primary Vsync interrupt*/
+        if (mdp_interrupt & MDP_PRIM_RDPTR) {
+	        spin_lock_irqsave(&mdp_spin_lock, flag);
+	        vsync_isr = vsync_cntrl.vsync_irq_enabled;
+	        disabled_clocks = vsync_cntrl.disabled_clocks;
+	        if ((!vsync_isr && !vsync_cntrl.disabled_clocks)
+		        || (!vsync_isr && vsync_cntrl.vsync_dma_enabled)) {
+		        mdp_intr_mask &= ~MDP_PRIM_RDPTR;
+		        outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+		        mdp_disable_irq_nosync(MDP_VSYNC_TERM);
+		        vsync_cntrl.disabled_clocks = 1;
+	        } else if (vsync_isr) {
+		        vsync_isr_handler();
+	        }
+	        vsync_cntrl.vsync_dma_enabled = 0;
+	        spin_unlock_irqrestore(&mdp_spin_lock, flag);
+
+	        complete(&vsync_cntrl.vsync_comp);
+	        if (!vsync_isr && !disabled_clocks)
+		        mdp_pipe_ctrl(MDP_CMD_BLOCK,
+			        MDP_BLOCK_POWER_OFF, TRUE);
+
+	        complete_all(&vsync_cntrl.vsync_wait);
+        }
+#endif
 
 		/* DMA3 TV-Out Start */
 		if (mdp_interrupt & TV_OUT_DMA3_START) {
@@ -1688,14 +1729,19 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		}
 	}
 
+
 		/* LCDC Frame Start */
 		if (mdp_interrupt & LCDC_FRAME_START) {
 			dma = &dma2_data;
+			spin_lock_irqsave(&mdp_spin_lock, flag);
+			vsync_isr = vsync_cntrl.vsync_irq_enabled;
+			/* let's disable LCDC interrupt */
 			if (dma->waiting) {
 				dma->waiting = FALSE;
 				complete(&dma->comp);
 			}
 
+#ifdef CONFIG_FB_MSM_MDP303
 			if (vsync_cntrl.vsync_irq_enabled)
 				vsync_isr_handler();
 
@@ -1703,6 +1749,23 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 				mdp_intr_mask &= ~LCDC_FRAME_START;
 				outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 			}
+#elif CONFIG_FB_MSM_MDP30
+			if (!vsync_isr) {
+				mdp_intr_mask &= ~LCDC_FRAME_START;
+				outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+				mdp_disable_irq_nosync(MDP_VSYNC_TERM);
+				vsync_cntrl.disabled_clocks = 1;
+			} else {
+				vsync_isr_handler();
+			}
+			spin_unlock_irqrestore(&mdp_spin_lock, flag);
+
+			if (!vsync_isr)
+				mdp_pipe_ctrl(MDP_CMD_BLOCK,
+					MDP_BLOCK_POWER_OFF, TRUE);
+
+			complete_all(&vsync_cntrl.vsync_wait);
+#endif
 		}
 
 		/* DMA2 LCD-Out Complete */
@@ -1796,8 +1859,13 @@ static void mdp_drv_init(void)
 	dma2_data.dmap_busy = FALSE;
 	dma2_data.waiting = FALSE;
 	init_completion(&dma2_data.comp);
+#ifdef CONFIG_FB_MSM_MDP303
 	init_completion(&dma2_data.dmap_comp);
 	sema_init(&dma2_data.mutex, 1);
+#elif CONFIG_FB_MSM_MDP30
+	init_completion(&vsync_cntrl.vsync_comp);
+	init_MUTEX(&dma2_data.mutex);
+#endif
 	mutex_init(&dma2_data.ov_mutex);
 
 	dma3_data.busy = FALSE;
@@ -1827,7 +1895,14 @@ static void mdp_drv_init(void)
 	for (i = 0; i < MDP_MAX_BLOCK; i++) {
 		atomic_set(&mdp_block_power_cnt[i], 0);
 	}
+#ifdef CONFIG_FB_MSM_MDP303
 	INIT_WORK(&(vsync_cntrl.vsync_work), send_vsync_work);
+#elif CONFIG_FB_MSM_MDP30
+	vsync_cntrl.disabled_clocks = 1;
+	init_completion(&vsync_cntrl.vsync_wait);
+	atomic_set(&vsync_cntrl.vsync_resume, 1);
+
+#endif
 #ifdef MSM_FB_ENABLE_DBGFS
 	{
 		struct dentry *root;
@@ -1912,6 +1987,10 @@ static int mdp_off(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd = platform_get_drvdata(pdev);
 
 	mdp_histogram_ctrl_all(FALSE);
+
+	atomic_set(&vsync_cntrl.suspend, 1);
+	atomic_set(&vsync_cntrl.vsync_resume, 0);
+	complete_all(&vsync_cntrl.vsync_wait);
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	ret = panel_next_off(pdev);
@@ -2249,6 +2328,7 @@ static int mdp_probe(struct platform_device *pdev)
 	/* link to the latest pdev */
 	mfd->pdev = msm_fb_dev;
 	mfd->mdp_rev = mdp_rev;
+	mfd->vsync_init = NULL;
 
 	if (mdp_pdata) {
 		if (mdp_pdata->cont_splash_enabled) {
@@ -2471,7 +2551,13 @@ static int mdp_probe(struct platform_device *pdev)
 		}
 #else
 		mfd->dma = &dma2_data;
+#ifdef CONFIG_FB_MSM_MDP303
 		mfd->vsync_ctrl = mdp_dma_lcdc_vsync_ctrl;
+#elif CONFIG_FB_MSM_MDP30
+		mfd->vsync_init = mdp_dma_lcdc_vsync_init;
+		mfd->vsync_ctrl = mdp_dma_lcdc_vsync_ctrl;
+		mfd->vsync_show = mdp_dma_lcdc_show_event;
+#endif
 		spin_lock_irqsave(&mdp_spin_lock, flag);
 		mdp_intr_mask &= ~MDP_DMA_P_DONE;
 		outp32(MDP_INTR_ENABLE, mdp_intr_mask);
@@ -2561,6 +2647,30 @@ static int mdp_probe(struct platform_device *pdev)
 
 	pdev_list[pdev_list_cnt++] = pdev;
 	mdp4_extn_disp = 0;
+
+	if (mfd->vsync_init != NULL) {
+		mfd->vsync_init(0);
+
+		if (!mfd->vsync_sysfs_created) {
+			mfd->dev_attr.attr.name = "vsync_event";
+			mfd->dev_attr.attr.mode = S_IRUGO;
+			mfd->dev_attr.show = mfd->vsync_show;
+			sysfs_attr_init(&mfd->dev_attr.attr);
+
+			rc = sysfs_create_file(&mfd->fbi->dev->kobj,
+							&mfd->dev_attr.attr);
+			if (rc) {
+				pr_err("%s: sysfs creation failed, ret=%d\n",
+					__func__, rc);
+				return rc;
+			}
+
+			kobject_uevent(&mfd->fbi->dev->kobj, KOBJ_ADD);
+			pr_debug("%s: kobject_uevent(KOBJ_ADD)\n", __func__);
+			mfd->vsync_sysfs_created = 1;
+		}
+	}
+
 	return 0;
 
       mdp_probe_err:

@@ -91,9 +91,22 @@ extern unsigned char hdmi_prim_display;
 
 struct vsync {
 	ktime_t vsync_time;
+#ifdef CONFIG_FB_MSM_MDP303
 	struct device *dev;
 	struct work_struct vsync_work;
 	int vsync_irq_enabled;
+#elif CONFIG_FB_MSM_MDP30
+	struct completion vsync_comp;
+	struct device *dev;
+	struct work_struct vsync_work;
+	int vsync_irq_enabled;
+	int vsync_dma_enabled;
+	int disabled_clocks;
+	struct completion vsync_wait;
+	atomic_t suspend;
+	atomic_t vsync_resume;
+	int sysfs_created;
+#endif
 };
 
 extern struct vsync vsync_cntrl;
@@ -286,11 +299,16 @@ extern struct mdp_hist_mgmt *mdp_hist_mgmt_array[];
 #define MDP_OVERLAY0_TERM 0x20
 #define MDP_OVERLAY1_TERM 0x40
 #endif
+#ifdef CONFIG_FB_MSM_MDP303
 #define MDP_OVERLAY2_TERM 0x80
 #define MDP_HISTOGRAM_TERM_DMA_P 0x10000
 #define MDP_HISTOGRAM_TERM_DMA_S 0x20000
 #define MDP_HISTOGRAM_TERM_VG_1 0x40000
 #define MDP_HISTOGRAM_TERM_VG_2 0x80000
+#elif CONFIG_FB_MSM_MDP30
+#define MDP_HISTOGRAM_TERM 0x80
+#define MDP_OVERLAY2_TERM 0x100
+#endif
 #define MDP_VSYNC_TERM 0x1000
 
 #define ACTIVE_START_X_EN BIT(31)
@@ -792,11 +810,19 @@ static inline int mdp_bus_scale_update_request(uint32_t index)
 	return 0;
 }
 #endif
+#ifdef CONFIG_FB_MSM_MDP303
 void mdp_dma_vsync_ctrl(int enable);
 void mdp_dma_video_vsync_ctrl(int enable);
 void mdp_dma_lcdc_vsync_ctrl(int enable);
 void mdp3_vsync_irq_enable(int intr, int term);
 void mdp3_vsync_irq_disable(int intr, int term);
+#elif CONFIG_FB_MSM_MDP30
+void mdp_dma_lcdc_vsync_init(int cndx);
+void mdp_dma_vsync_ctrl(int enable);
+void mdp_dma_lcdc_vsync_ctrl(int enable);
+ssize_t mdp_dma_lcdc_show_event(struct device *dev,
+		struct device_attribute *attr, char *buf);
+#endif
 
 #ifdef MDP_HW_VSYNC
 void mdp_hw_vsync_clk_enable(struct msm_fb_data_type *mfd);
