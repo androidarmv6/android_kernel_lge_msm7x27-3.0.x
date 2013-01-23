@@ -1,3 +1,4 @@
+EXTRA_CFLAGS += -Wno-unused-function
 #
 # Makefile for the sensor drivers.
 #
