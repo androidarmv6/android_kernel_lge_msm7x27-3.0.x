@@ -719,6 +719,7 @@ static void aat28xx_poweron(struct aat28xx_driver_data *drvdata)
 	}
 }
 
+#if 0
 static void aat28xx_poweroff(struct aat28xx_driver_data *drvdata)
 {
 	if (!drvdata || drvdata->state == POWEROFF_STATE)
@@ -733,11 +734,12 @@ static void aat28xx_poweroff(struct aat28xx_driver_data *drvdata)
 		return;
 	}
 
-	gpio_tlmm_config(GPIO_CFG(drvdata->gpio, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA), GPIO_ENABLE);
+	gpio_tlmm_config(GPIO_CFG(drvdata->gpio, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
 	gpio_direction_output(drvdata->gpio, 0);
 	mdelay(6);
 	drvdata->state = POWEROFF_STATE;
 }
+#endif
 
 /* This function provide sleep enter routine for power management. */
 static void aat28xx_sleep(struct aat28xx_driver_data *drvdata)
@@ -1035,6 +1037,7 @@ static struct led_classdev aat28xx_led_dev = {
 
 static int __init aat28xx_probe(struct i2c_client *i2c_dev, const struct i2c_device_id *i2c_dev_id)
 {
+	struct backlight_properties props;
 	struct aat28xx_platform_data *pdata;
 	struct aat28xx_driver_data *drvdata;
 	struct backlight_device *bd;
@@ -1076,7 +1079,13 @@ static int __init aat28xx_probe(struct i2c_client *i2c_dev, const struct i2c_dev
 		return -ENODEV;
 	}
 
-	bd = backlight_device_register("aat28xx-bl", &i2c_dev->dev, NULL, &aat28xx_ops);
+	memset(&props, 0, sizeof(struct backlight_properties));
+	props.type = BACKLIGHT_RAW;
+	props.power = FB_BLANK_UNBLANK;
+	props.brightness = drvdata->intensity;
+	props.max_brightness = drvdata->max_intensity;
+
+	bd = backlight_device_register("aat28xx-bl", &i2c_dev->dev, NULL, &aat28xx_ops, &props);
 	if (bd == NULL) {
 		eprintk("entering aat28xx probe function error \n");
 		if (gpio_is_valid(drvdata->gpio))
@@ -1084,10 +1093,10 @@ static int __init aat28xx_probe(struct i2c_client *i2c_dev, const struct i2c_dev
 		kfree(drvdata);
 		return -1;
 	}
-	bd->props.power = FB_BLANK_UNBLANK;
-	bd->props.brightness = drvdata->intensity;
-	bd->props.max_brightness = drvdata->max_intensity;
-	drvdata->bd = bd;
+//	bd->props.power = FB_BLANK_UNBLANK;
+//	bd->props.brightness = drvdata->intensity;
+//	bd->props.max_brightness = drvdata->max_intensity;
+//	drvdata->bd = bd;
 
 #ifdef CONFIG_BACKLIGHT_LEDS_CLASS
 	if (led_classdev_register(&i2c_dev->dev, &aat28xx_led_dev) == 0) {
