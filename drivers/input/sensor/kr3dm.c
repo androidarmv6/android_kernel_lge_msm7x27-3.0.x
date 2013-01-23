@@ -481,13 +481,11 @@ static int kr3dm_misc_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-#if 0 /* Temporarily disable this function */
-static int kr3dm_misc_ioctl(struct inode *inode, struct file *file,
-				unsigned int cmd, unsigned long arg)
+static long kr3dm_misc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int buf[3];
-	int err;
+	long err;
 	int interval;
 	struct kr3dm_data *kr = file->private_data;
 
@@ -545,7 +543,7 @@ static int kr3dm_misc_ioctl(struct inode *inode, struct file *file,
 	case KR3DM_IOCTL_READ_ACCEL_XYZ:
 		err=kr3dm_get_acceleration_data(kr, buf);
 		if (err < 0)
-				return err;
+			return err;
 
 		if (copy_to_user(argp, buf, sizeof(int)*3))
 			return -EINVAL;
@@ -572,12 +570,11 @@ static int kr3dm_misc_ioctl(struct inode *inode, struct file *file,
 
 	return 0;
 }
-#endif
 
 static const struct file_operations kr3dm_misc_fops = {
 	.owner = THIS_MODULE,
 	.open = kr3dm_misc_open,
-	//.ioctl = kr3dm_misc_ioctl,
+	.unlocked_ioctl = kr3dm_misc_ioctl,
 };
 
 static struct miscdevice kr3dm_misc_device = {
