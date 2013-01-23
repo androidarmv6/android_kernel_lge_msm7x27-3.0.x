@@ -481,6 +481,7 @@ static int kr3dm_misc_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
+#if 0 /* Temporarily disable this function */
 static int kr3dm_misc_ioctl(struct inode *inode, struct file *file,
 				unsigned int cmd, unsigned long arg)
 {
@@ -571,6 +572,7 @@ static int kr3dm_misc_ioctl(struct inode *inode, struct file *file,
 
 	return 0;
 }
+#endif
 
 static const struct file_operations kr3dm_misc_fops = {
 	.owner = THIS_MODULE,
