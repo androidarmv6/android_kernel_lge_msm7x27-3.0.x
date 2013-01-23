@@ -369,6 +369,7 @@ int kr3dm_update_odr(struct kr3dm_data *kr, int poll_interval)
 	return 0;
 }
 
+#if 0
 static int kr3dm_get_acceleration_data(struct kr3dm_data *kr, int *xyz)
 {
 	int err = -1;
@@ -422,6 +423,7 @@ static int kr3dm_get_acceleration_data(struct kr3dm_data *kr, int *xyz)
 
 	return err;
 }
+#endif
 
 #if USE_WORK_QUEUE
 static void kr3dm_report_values(struct kr3dm_data *kr, int *xyz)
