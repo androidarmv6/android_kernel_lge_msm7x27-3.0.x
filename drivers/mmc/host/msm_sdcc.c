@@ -61,6 +61,19 @@
 #include "msm_sdcc.h"
 #include "msm_sdcc_dml.h"
 
+
+#ifdef CONFIG_BCM4325_GPIO_WL_RESET
+#define WLAN_RESET_GPIO CONFIG_BCM4325_GPIO_WL_RESET
+#endif
+
+#ifdef CONFIG_BCM4329_GPIO_WL_RESET
+#define WLAN_RESET_GPIO CONFIG_BCM4329_GPIO_WL_RESET
+#endif
+
+#ifdef CONFIG_BCM4330_GPIO_WL_RESET
+#define WLAN_RESET_GPIO CONFIG_BCM4330_GPIO_WL_RESET
+#endif
+
 /* LGE_CHANGE_S [jisung.yang@lge.com] 2010-04-24, for gpio_to_irq */
 #if defined(CONFIG_LGE_BCM432X_PATCH)
 #include <asm/gpio.h>
@@ -6451,6 +6464,8 @@ msmsdcc_runtime_suspend(struct device *dev)
 		 * the host so that any resume requests after this will
 		 * simple become pm usage counter increment operations.
 		 */
+// LGE_DEV_PORTING, 2011-02-24, jongpil.yoon@lge.com, <wifi suspend/resume>
+#if !defined(CONFIG_LGE_BCM432X_PATCH)
 		pm_runtime_get_noresume(dev);
 		/* If there is pending detect work abort runtime suspend */
 		if (unlikely(work_busy(&mmc->detect.work)))
@@ -6458,21 +6473,31 @@ msmsdcc_runtime_suspend(struct device *dev)
 		else
 			rc = mmc_suspend_host(mmc);
 		pm_runtime_put_noidle(dev);
+#else
+		if (host->plat->status_irq != gpio_to_irq(WLAN_RESET_GPIO)) {
+	                pm_runtime_get_noresume(dev);
+        	        /* If there is pending detect work abort runtime suspend */
+                	if (unlikely(work_busy(&mmc->detect.work)))
+                        	rc = -EAGAIN;
+	                else
+        	                rc = mmc_suspend_host(mmc);
+                	pm_runtime_put_noidle(dev);
+		}
 
 /* LGE_CHANGE_S, [jisung.yang@lge.com], 2010-04-24, <never sleep policy - host wakeup> */
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
-	//else if (mmc->card && mmc->card->type == MMC_TYPE_SDIO) {
-	else if (host->plat->status_irq == gpio_to_irq(CONFIG_BCM4325_GPIO_WL_RESET)) {
-		if(dhdpm.suspend != NULL) {
-			//rc = dhdpm.suspend(NULL);
-			dhdpm.suspend(NULL);
+		//else if (mmc->card && mmc->card->type == MMC_TYPE_SDIO) {
+		if (host->plat->status_irq == gpio_to_irq(CONFIG_BCM4325_GPIO_WL_RESET)) {
+			if(dhdpm.suspend != NULL) {
+				//rc = dhdpm.suspend(NULL);
+				dhdpm.suspend(NULL);
+			}
+			else
+				printk("[WiFi] %s: dhdpm.suspend=NULL \n",__FUNCTION__);
 		}
-		else
-			printk("[WiFi] %s: dhdpm.suspend=NULL \n",__FUNCTION__);
-	}
-#endif
-/* LGE_CHANGE_E, [jisung.yang@lge.com], 2010-04-24, <never sleep policy - host wakeup> */
-
+#endif /* LGE_CHANGE_E, [jisung.yang@lge.com], 2010-04-24, <never sleep policy - host wakeup> */
+#endif /* !defined(CONFIG_LGE_BCM432X_PATCH) */
+// LGE_DEV_END, 2011-02-24, jongpil.yoon@lge.com, <wifi suspend/resume>
 		if (!rc) {
 			spin_lock_irqsave(&host->lock, flags);
 			host->sdcc_suspended = true;
