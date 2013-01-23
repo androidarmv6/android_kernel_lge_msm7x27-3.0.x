@@ -176,7 +176,7 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 		if(func->device == 0x4) { /* 4318 */
 			gInstance->func[2] = NULL;
 			sd_trace(("NIC found, calling bcmsdh_probe...\n"));
-			ret = bcmsdh_probe(&sdmmc_dev);
+			ret = bcmsdh_probe(&func->dev); //(&sdmmc_dev)
 		}
 	}
 
@@ -184,7 +184,7 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 
 	if (func->num == 2) {
 		sd_trace(("F2 found, calling bcmsdh_probe...\n"));
-		ret = bcmsdh_probe(&sdmmc_dev);
+		ret = bcmsdh_probe(&func->dev); //(&sdmmc_dev);
 	}
 
 	return ret;
@@ -200,7 +200,7 @@ static void bcmsdh_sdmmc_remove(struct sdio_func *func)
 
 	if (func->num == 2) {
 		sd_trace(("F2 found, calling bcmsdh_probe...\n"));
-		bcmsdh_remove(&sdmmc_dev);
+		bcmsdh_remove(&func->dev); //(&sdmmc_dev);
 	}
 }
 
@@ -500,7 +500,7 @@ int sdio_function_init(void)
 	if (!gInstance)
 		return -ENOMEM;
 
-	bzero(&sdmmc_dev, sizeof(sdmmc_dev));
+	//bzero(&sdmmc_dev, sizeof(sdmmc_dev));
 	error = sdio_register_driver(&bcmsdh_sdmmc_driver);
 
 #if defined(CONFIG_HAS_EARLYSUSPEND)
@@ -674,7 +674,7 @@ dhd_enable_hwakeup(void)
 {
 	int ret;
 
-	ret = set_irq_wake(dhd_wifi_sleep->host_wake_irq, 1);
+	ret = irq_set_irq_wake(dhd_wifi_sleep->host_wake_irq, 1);
 
 	if (ret < 0) {
 		DHD_ERROR(("Couldn't enable WLAN_HOST_WAKE as wakeup interrupt"));
@@ -693,7 +693,7 @@ static void
 dhd_disable_hwakeup(void)
 {
 
-	if (set_irq_wake(dhd_wifi_sleep->host_wake_irq, 0))
+	if (irq_set_irq_wake(dhd_wifi_sleep->host_wake_irq, 0))
 		DHD_ERROR(("Couldn't disable hostwake IRQ wakeup mode\n"));
 }
 
@@ -810,7 +810,7 @@ dhd_register_hwakeup(void)
 /* LGE_CHANGE_S [yoohoo@lge.com] 2009-11-19, set_irq_type and disable_irq */
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
 //	set_irq_type(dhd_wifi_sleep->host_wake_irq, IRQ_TYPE_EDGE_BOTH);
-	set_irq_type(dhd_wifi_sleep->host_wake_irq, IRQ_TYPE_EDGE_RISING);
+	irq_set_irq_type(dhd_wifi_sleep->host_wake_irq, IRQ_TYPE_EDGE_RISING);
 #if	defined(CONFIG_BRCM_GPIO_INTR)
 	disable_irq(dhd_wifi_sleep->host_wake_irq);
 #endif /* CONFIG_BRCM_GPIO_INTR */
