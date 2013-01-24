@@ -59,20 +59,6 @@ static struct platform_device atcmd_virtual_device = {
 };
 /* LGE_E [ynj.kim@lge.com] 2010-05-15 : atcmd virtual device */
 
-/* head set device */
-static struct msm_handset_platform_data hs_platform_data = {
-	.hs_name = "7k_handset",
-	.pwr_key_delay_ms = 500, /* 0 will disable end key */
-};
-
-static struct platform_device hs_device = {
-	.name   = "msm-handset",
-	.id     = -1,
-	.dev    = {
-		.platform_data = &hs_platform_data,
-	},
-};
-
 static unsigned int keypad_row_gpios[] = {
 	38, 37
 };
@@ -124,8 +110,8 @@ static struct gpio_event_matrix_info pecan_keypad_matrix_info = {
 	.input_gpios	= keypad_row_gpios,
 	.noutputs	= ARRAY_SIZE(keypad_col_gpios),
 	.ninputs	= ARRAY_SIZE(keypad_row_gpios),
-	.settle_time.tv_nsec = 40 * NSEC_PER_USEC,
-	.poll_time.tv_nsec = 20 * NSEC_PER_MSEC,
+	.settle_time.tv.nsec = 40 * NSEC_PER_USEC,
+	.poll_time.tv.nsec = 20 * NSEC_PER_MSEC,
 	.flags		= GPIOKPF_LEVEL_TRIGGERED_IRQ | GPIOKPF_PRINT_UNMAPPED_KEYS | GPIOKPF_DRIVE_INACTIVE
 };
 
@@ -178,7 +164,6 @@ struct platform_device pecan_reset_keys_device = {
 
 /* input platform device */
 static struct platform_device *pecan_input_devices[] __initdata = {
-	&hs_device,
 	&keypad_device_pecan,
 	//&pecan_reset_keys_device,
 	&atcmd_virtual_device,

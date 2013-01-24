@@ -55,20 +55,6 @@ static struct platform_device atcmd_virtual_device = {
 };
 /* LGE_E [ynj.kim@lge.com] 2010-05-15 : atcmd virtual device */
 
-/* head set device */
-static struct msm_handset_platform_data hs_platform_data = {
-	.hs_name = "7k_handset",
-	.pwr_key_delay_ms = 500, /* 0 will disable end key */
-};
-
-static struct platform_device hs_device = {
-	.name   = "msm-handset",
-	.id     = -1,
-	.dev    = {
-		.platform_data = &hs_platform_data,
-	},
-};
-
 /* gpio keypad device */
 #define GPIO_VOL_UP            37
 #define GPIO_VOL_DOWN  38
@@ -181,7 +167,6 @@ struct platform_device alessi_reset_keys_device = {
 
 /* input platform device */
 static struct platform_device *alessi_input_devices[] __initdata = {
-	&hs_device,
 	&alessi_gpio_keypad_device,
 //	&alessi_reset_keys_device,
 	&atcmd_virtual_device,
