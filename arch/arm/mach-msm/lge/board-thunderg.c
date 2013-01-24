@@ -57,6 +57,7 @@
 #include <linux/android_pmem.h>
 #include <mach/camera.h>
 #include <mach/socinfo.h>
+
 #include "devices.h"
 #include "clock.h"
 #include "msm-keypad-devices.h"
@@ -414,6 +415,11 @@ static void msm7x27_wlan_init(void)
 	}
 }
 
+struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
+	.p_addr = 0,
+};
+
 /* decrease FB pmem size because thunderg uses hvga
  * qualcomm's original value depends on wvga resolution
  * 2010-04-18, cleaneye.kim@lge.com
@@ -430,12 +436,7 @@ static void __init msm7x2x_init(void)
 			&msm_device_uart3.dev, 1);
 #endif
 
-	if (cpu_is_msm7x27())
-		acpuclk_init(&acpuclk_7x27_soc_data);
-	else
-		acpuclk_init(&acpuclk_7201_soc_data);
-
-	msm_acpu_clock_init(&msm7x2x_clock_data);
+	acpuclk_init(&acpuclk_7x27_soc_data);
 
 	msm_add_pmem_devices();
 	msm_add_fb_device();
@@ -445,7 +446,8 @@ static void __init msm7x2x_init(void)
 #endif
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 #ifdef CONFIG_ARCH_MSM7X27
-	msm_add_kgsl_device();
+	// TODO FIX - MUST BE FIXED
+	//msm_add_kgsl_device(); // calls devices-msm7x27, it should be in lge devices.
 #endif
 	msm_add_usb_devices();
 
