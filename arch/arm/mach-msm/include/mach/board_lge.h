@@ -34,33 +34,9 @@
 #define LGE_RAM_CONSOLE_SIZE    (128 * SZ_1K * 2)
 #endif
 
-/* define PMEM address size */
-#ifdef CONFIG_ARCH_MSM7X25
-#define MSM_PMEM_MDP_SIZE   0xb21000
-#define MSM_PMEM_ADSP_SIZE  0x97b000
-#define MSM_FB_SIZE     0x200000
-#define PMEM_KERNEL_EBI1_SIZE   0x64000
-#endif
 
-#ifdef CONFIG_ARCH_MSM7X27
-#if defined(CONFIG_MACH_MSM7X27_PECAN)
-/* TODO: optimization needed, pmem_mdp is reduced for qvga by bongkyu.kim */
-#define MSM_PMEM_MDP_SIZE	0x1076000 /* 23->12MB + 4.46 MB */
-#define MSM_FB_SIZE		0x50000
-#else
-#define MSM_PMEM_MDP_SIZE	0x1B76000
-#define MSM_FB_SIZE		0x177000
-#endif
-#define MSM_PMEM_ADSP_SIZE     0xC00000 //12MB
-#define PMEM_KERNEL_EBI1_SIZE	0x1C000
 
-/* Using lower 1MB of OEMSBL memory for GPU_PHYS */
-#if defined(CONFIG_MACH_MSM7X27_PECAN)
-#define MSM_GPU_PHYS_START_ADDR	 0x240000ul
-#else
-#define MSM_GPU_PHYS_START_ADDR	 0xD600000ul
-#endif
-#endif
+
 
 /* TA charger */
 #define GISELE_TA_CHG_CURRENT	600
