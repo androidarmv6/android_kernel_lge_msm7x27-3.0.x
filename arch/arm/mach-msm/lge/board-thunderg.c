@@ -429,6 +429,8 @@ unsigned pmem_adsp_size =	0xAE4000;
 
 static void __init msm7x2x_init(void)
 {
+	msm7627_init_regulators();
+
 	msm_clock_init(&msm7x27_clock_init_data);
 
 #if defined(CONFIG_MSM_SERIAL_DEBUGGER)
