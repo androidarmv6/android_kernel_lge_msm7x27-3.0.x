@@ -857,6 +857,11 @@ struct platform_device msm_kgsl_3d0 = {
 	},
 };
 
+void __init msm_add_kgsl_device(void)
+{
+	platform_device_register(&msm_kgsl_3d0);
+}
+
 struct platform_device *msm_footswitch_devices[] = {
 	FS_PCOM(FS_GFX3D,  "fs_gfx3d"),
 };
