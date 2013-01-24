@@ -19,7 +19,7 @@ obj-$(CONFIG_LGE_DIAGTEST) += lg_diag_screen_shot.o
 #obj-$(CONFIG_LGE_DIAGTEST) += lg_fw_diag_mtc.o
 #obj-$(CONFIG_LGE_DIAGTEST) += lg_diag_wifi.o
 
-obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan.o
+#obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-mmc.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-snd.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-panel.o
@@ -29,7 +29,7 @@ obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-input.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-misc.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-pm.o
 
-obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg.o
+#obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg.o
 obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg-mmc.o
 obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg-snd.o
 obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg-panel.o
@@ -39,7 +39,7 @@ obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg-input.o
 obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg-misc.o
 obj-$(CONFIG_MACH_MSM7X27_THUNDERG) += board-thunderg-pm.o
 
-obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato.o
+#obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato.o
 obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato-mmc.o
 obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato-snd.o
 obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato-panel.o
@@ -49,7 +49,7 @@ obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato-input.o
 obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato-misc.o
 obj-$(CONFIG_MACH_MSM7X27_GELATO) += board-gelato-pm.o
 
-obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa.o
+#obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa.o
 obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa-mmc.o
 obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa-snd.o
 obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa-panel.o
@@ -59,7 +59,7 @@ obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa-input.o
 obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa-misc.o
 obj-$(CONFIG_MACH_MSM7X27_UNIVA) += board-univa-pm.o
 
-obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat.o
+#obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat.o
 obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat-mmc.o
 obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat-snd.o
 obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat-panel.o
@@ -69,7 +69,7 @@ obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat-input.o
 obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat-misc.o
 obj-$(CONFIG_MACH_MSM7X27_MUSCAT) += board-muscat-pm.o
 
-obj-$(CONFIG_MACH_MSM7X27_ALESSI) += board-alessi.o
+#obj-$(CONFIG_MACH_MSM7X27_ALESSI) += board-alessi.o
 obj-$(CONFIG_MACH_MSM7X27_ALESSI) += board-alessi-mmc.o
 obj-$(CONFIG_MACH_MSM7X27_ALESSI) += board-alessi-snd.o
 obj-$(CONFIG_MACH_MSM7X27_ALESSI) += board-alessi-panel.o
