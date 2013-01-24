@@ -146,20 +146,6 @@ static struct platform_device atcmd_virtual_device = {
 };
 /* LGE_E [ynj.kim@lge.com] 2010-05-15 : atcmd virtual device */
 
-/* head set device */
-static struct msm_handset_platform_data hs_platform_data = {
-	.hs_name = "7k_handset",
-	.pwr_key_delay_ms = 500, /* 0 will disable end key */
-};
-
-static struct platform_device hs_device = {
-	.name   = "msm-handset",
-	.id     = -1,
-	.dev    = {
-		.platform_data = &hs_platform_data,
-	},
-};
-
 /*
  * 2011-02-05, jinkyu.choi@lge.com
  * GPIO key map for muscat Rev.B
