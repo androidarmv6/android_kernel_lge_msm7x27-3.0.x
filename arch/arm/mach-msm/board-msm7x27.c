@@ -1929,13 +1929,13 @@ static struct reserve_info msm7x27_reserve_info __initdata = {
 	.paddr_to_memtype = msm7x27_paddr_to_memtype,
 };
 
-static void __init msm7x27_reserve(void)
+void __init msm7x27_reserve(void)
 {
 	reserve_info = &msm7x27_reserve_info;
 	msm_reserve();
 }
 
-static void __init msm7x27_init_early(void)
+void __init msm7x27_init_early(void)
 {
 	msm_msm7x2x_allocate_memory_regions();
 }
