@@ -222,7 +222,9 @@ struct msm_handset {
 
 static struct msm_rpc_client *rpc_client;
 static struct msm_handset *hs;
+#ifdef CONFIG_MACH_LGE
 static void (*deskdock_detect_callback)(int);
+#endif
 
 static int hs_find_key(uint32_t hscode)
 {
