@@ -222,6 +222,7 @@ struct msm_handset {
 
 static struct msm_rpc_client *rpc_client;
 static struct msm_handset *hs;
+static void (*deskdock_detect_callback)(int);
 
 static int hs_find_key(uint32_t hscode)
 {
@@ -425,6 +426,16 @@ void report_headset_status(bool connected)
 		pr_err("%s: couldn't send rpc client request\n", __func__);
 }
 EXPORT_SYMBOL(report_headset_status);
+
+#ifdef CONFIG_MACH_LGE
+void rpc_server_hs_register_callback(void *callback_func)
+{
+        deskdock_detect_callback = (void (*)(int))callback_func;
+
+        return;
+}
+EXPORT_SYMBOL(rpc_server_hs_register_callback);
+#endif
 
 static int hs_rpc_pwr_cmd_arg(struct msm_rpc_client *client,
 				    void *buffer, void *data)
