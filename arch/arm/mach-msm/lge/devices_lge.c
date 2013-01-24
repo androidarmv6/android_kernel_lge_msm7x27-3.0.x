@@ -1,7 +1,7 @@
 /* linux/arch/arm/mach-msm/lge/devices_lge.c
  *
  * Copyright (C) 2008 Google, Inc.
- * Copyright (C) 2009 LGE.
+ * Copyright (C) 2009-2010 LGE.
  * Author: SungEun Kim <cleaneye.kim@lge.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -50,7 +50,6 @@
 #include "../devices.h"
 #include "../pm.h"
 #include <mach/socinfo.h>
-#include <linux/bootmem.h>
 
 /* setting board revision information */
 int lge_bd_rev;
@@ -153,41 +152,18 @@ void __init lge_add_ers_devices(void)
 
 #endif
 
-/* setting frame buffer device */
-static struct resource msm_fb_resources[] = {
-	{
-		.flags  = IORESOURCE_DMA,
-	}
+
+
+
+// this is only a temp home until I can get to the right place
+static struct msm_panel_common_pdata mdp_pdata = {
+	.gpio = 97,
+	.mdp_rev = MDP_REV_30,
 };
 
-static int msm_fb_detect_panel(const char *name)
-{
-	int ret = -EPERM;
 
-	if (machine_is_msm7x25_ffa() || machine_is_msm7x27_ffa()) {
-		if (!strcmp(name, "lcdc_gordon_vga"))
-			ret = 0;
-		else
-			ret = -ENODEV;
-	}
+//
 
-	return ret;
-}
-
-static struct msm_fb_platform_data msm_fb_pdata = {
-	.detect_client = msm_fb_detect_panel,
-	.mddi_prescan = 1,
-};
-
-static struct platform_device msm_fb_device = {
-	.name   = "msm_fb",
-	.id     = 0,
-	.num_resources  = ARRAY_SIZE(msm_fb_resources),
-	.resource       = msm_fb_resources,
-	.dev    = {
-		.platform_data = &msm_fb_pdata,
-	}
-};
 
 static void *fb_copy_virt;
 void *lge_get_fb_copy_virt_addr(void)
@@ -228,46 +204,6 @@ void __init msm_add_fb_device(void)
 }
 
 /* kgsl moved to mach-msm/devices-msm7x27.c since .38 */
-
-
-static struct android_pmem_platform_data android_pmem_pdata = {
-	.name = "pmem",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 1,
-	.memory_type = MEMTYPE_EBI1,
-};
-
-static struct android_pmem_platform_data android_pmem_adsp_pdata = {
-	.name = "pmem_adsp",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 1,
-	.memory_type = MEMTYPE_EBI1,
-};
-
-static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-	.memory_type = MEMTYPE_EBI1,
-};
-
-static struct platform_device android_pmem_device = {
-	.name = "android_pmem",
-	.id = 0,
-	.dev = { .platform_data = &android_pmem_pdata },
-};
-
-static struct platform_device android_pmem_adsp_device = {
-	.name = "android_pmem",
-	.id = 1,
-	.dev = { .platform_data = &android_pmem_adsp_pdata },
-};
-
-static struct platform_device android_pmem_audio_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_audio_pdata },
-};
 
 static struct platform_device *pmem_devices[] __initdata = {
 	&android_pmem_device,
@@ -433,193 +369,6 @@ __WEAK struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	
 };
 
-#ifdef CONFIG_USB_G_ANDROID
-static struct android_usb_platform_data android_usb_pdata = {
-	.update_pid_and_serial_num = usb_diag_update_pid_and_serial_num,
-};
-
-static struct platform_device android_usb_device = {
-	.name	= "android_usb",
-	.id		= -1,
-	.dev		= {
-		.platform_data = &android_usb_pdata,
-	},
-};
-
-#endif
-
-#ifdef CONFIG_USB_EHCI_MSM_72K
-static void msm_hsusb_vbus_power(unsigned phy_info, int on)
-{
-	if (on)
-		msm_hsusb_vbus_powerup();
-	else
-		msm_hsusb_vbus_shutdown();
-}
-
-static struct msm_usb_host_platform_data msm_usb_host_pdata = {
-	.phy_info       = (USB_PHY_INTEGRATED | USB_PHY_MODEL_65NM),
-};
-static void __init msm7x2x_init_host(void)
-{
-	if (machine_is_msm7x25_ffa() || machine_is_msm7x27_ffa())
-		return;
-
-	msm_add_host(0, &msm_usb_host_pdata);
-}
-#endif
-
-#ifdef CONFIG_USB_MSM_OTG_72K
-static int hsusb_rpc_connect(int connect)
-{
-	if (connect)
-		return msm_hsusb_rpc_connect();
-	else
-		return msm_hsusb_rpc_close();
-}
-#endif
-
-#ifdef CONFIG_USB_MSM_OTG_72K
-struct vreg *vreg_3p3;
-static int msm_hsusb_ldo_init(int init)
-{
-	if (init) {
-		/*
-		 * PHY 3.3V analog domain(VDDA33) is powered up by
-		 * an always enabled power supply (LP5900TL-3.3).
-		 * USB VREG default source is VBUS line. Turning
-		 * on USB VREG has a side effect on the USB suspend
-		 * current. Hence USB VREG is explicitly turned
-		 * off here.
-		 */
-		vreg_3p3 = vreg_get(NULL, "usb");
-		if (IS_ERR(vreg_3p3))
-			return PTR_ERR(vreg_3p3);
-		vreg_enable(vreg_3p3);
-		vreg_disable(vreg_3p3);
-		vreg_put(vreg_3p3);
-	}
-
-	return 0;
-}
-
-static int msm_hsusb_pmic_notif_init(void (*callback)(int online), int init)
-{
-	int ret;
-
-	if (init) {
-		ret = msm_pm_app_rpc_init(callback);
-	} else {
-		msm_pm_app_rpc_deinit(callback);
-		ret = 0;
-	}
-	return ret;
-}
-
-static int msm_otg_rpc_phy_reset(void __iomem *regs)
-{
-	return msm_hsusb_phy_reset();
-}
-
-static struct msm_otg_platform_data msm_otg_pdata = {
-	.rpc_connect    	= hsusb_rpc_connect,
-#ifdef CONFIG_ARCH_MSM7X27
-	/* LGE_CHANGE
-	 * To reset USB LDO, use RPC(only msm7x27).
-	 * 2011-01-12, hyunhui.park@lge.com
-	 */
-	.phy_reset			= msm_otg_rpc_phy_reset,
-#endif
-	.pmic_vbus_notif_init	= msm_hsusb_pmic_notif_init,
-	.chg_vbus_draw      = hsusb_chg_vbus_draw,
-	.chg_connected      = hsusb_chg_connected,
-	.chg_init        	= hsusb_chg_init,
-#ifdef CONFIG_USB_EHCI_MSM_72K
-	.vbus_power = msm_hsusb_vbus_power,
-#endif
-	.ldo_init       = msm_hsusb_ldo_init,
-	.pclk_required_during_lpm = 1,
-};
-
-#ifdef CONFIG_USB_GADGET
-static struct msm_hsusb_gadget_platform_data msm_gadget_pdata;
-#endif
-#endif
-
-static struct platform_device *usb_devices[] __initdata = {
-#ifdef CONFIG_USB_MSM_OTG_72K
-	&msm_device_otg,
-#ifdef CONFIG_USB_GADGET
-	&msm_device_gadget_peripheral,
-#endif
-#endif
-
-#ifdef CONFIG_USB_SUPPORT_LGE_ANDROID_AUTORUN
-	/* LGE_CHANGE
-	 * Add platform data and device for cdrom storage function.
-	 * It will be used in Autorun feature.
-	 * 2011-03-02, hyunhui.park@lge.com
-	 */
-	&usb_cdrom_storage_device,
-#endif
-#ifdef CONFIG_USB_G_ANDROID
-	&android_usb_device,
-#endif
-
-};
-
-static void usb_mpp_init(void)
-{
-	unsigned rc;
-	unsigned mpp_usb = 7;
-
-	if (machine_is_msm7x25_ffa() || machine_is_msm7x27_ffa()) {
-		rc = mpp_config_digital_out(mpp_usb,
-				MPP_CFG(MPP_DLOGIC_LVL_VDD,
-					MPP_DLOGIC_OUT_CTRL_HIGH));
-		if (rc)
-			pr_err("%s: configuring mpp pin"
-					"to enable 3.3V LDO failed\n", __func__);
-	}
-}
-
-void __init msm_add_usb_devices(void) 
-{
-	usb_mpp_init();
-
-#ifdef CONFIG_USB_MSM_OTG_72K
-	msm_device_otg.dev.platform_data = &msm_otg_pdata;
-	if (machine_is_msm7x25_surf() || machine_is_msm7x25_ffa()) {
-		msm_otg_pdata.pemp_level =
-			PRE_EMPHASIS_WITH_20_PERCENT;
-		msm_otg_pdata.drv_ampl = HS_DRV_AMPLITUDE_5_PERCENT;
-		msm_otg_pdata.cdr_autoreset = CDR_AUTO_RESET_ENABLE;
-		msm_otg_pdata.phy_reset = msm_otg_rpc_phy_reset;
-	}
-	if (machine_is_msm7x27_surf() || machine_is_msm7x27_ffa()) {
-		msm_otg_pdata.pemp_level =
-			PRE_EMPHASIS_WITH_10_PERCENT;
-		msm_otg_pdata.drv_ampl = HS_DRV_AMPLITUDE_5_PERCENT;
-		msm_otg_pdata.cdr_autoreset = CDR_AUTO_RESET_DISABLE;
-		msm_otg_pdata.phy_reset_sig_inverted = 1;
-	}
-
-#ifdef CONFIG_USB_GADGET
-	msm_otg_pdata.swfi_latency =
-		msm7x27_pm_data
-		[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
-	msm_device_gadget_peripheral.dev.platform_data = &msm_gadget_pdata;
-	msm_gadget_pdata.is_phy_status_timer_on = 1;
-#endif
-#endif
-
-	platform_add_devices(usb_devices, ARRAY_SIZE(usb_devices));
-
-#ifdef CONFIG_USB_EHCI_MSM_72K
-	msm7x2x_init_host();
-#endif
-}
-
 static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
 	.p_addr = 0,
@@ -699,40 +448,6 @@ void __init msm_device_i2c_init(void)
 
 	msm_device_i2c.dev.platform_data = &msm_i2c_pdata;
 }
-
-/* TSIF begin */
-#if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
-
-#define TSIF_B_SYNC      GPIO_CFG(87, 5, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
-#define TSIF_B_DATA      GPIO_CFG(86, 3, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
-#define TSIF_B_EN        GPIO_CFG(85, 3, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
-#define TSIF_B_CLK       GPIO_CFG(84, 4, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA)
-
-static const struct msm_gpio tsif_gpios[] = {
-	{ .gpio_cfg = TSIF_B_CLK,  .label =  "tsif_clk", },
-	{ .gpio_cfg = TSIF_B_EN,   .label =  "tsif_en", },
-	{ .gpio_cfg = TSIF_B_DATA, .label =  "tsif_data", },
-	{ .gpio_cfg = TSIF_B_SYNC, .label =  "tsif_sync", },
-};
-
-static struct msm_tsif_platform_data tsif_platform_data = {
-	.num_gpios = ARRAY_SIZE(tsif_gpios),
-	.gpios = tsif_gpios,
-	.tsif_clk = "core_clk",
-	.tsif_pclk = "iface_clk",
-	.tsif_ref_clk = "ref_clk",
-};
-
-void __init lge_add_tsif_devices(void)
-//TODO: this needs merging into msm7x2x_init in device board files
-{
-	msm_device_tsif.dev.platform_data = &tsif_platform_data;
-	platform_device_register(&msm_device_tsif);
-	platform_add_devices(msm_footswitch_devices,
-		msm_num_footswitch_devices);
-}
-#endif /* defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE) */
-
 
 /* lge gpio i2c device */
 #define MAX_GPIO_I2C_DEV_NUM	10
