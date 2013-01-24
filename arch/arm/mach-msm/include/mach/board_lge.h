@@ -582,6 +582,8 @@ int __init init_gpio_i2c_pin(struct i2c_gpio_platform_data *i2c_adap_pdata,
 		struct gpio_i2c_pin gpio_i2c_pin,
 		struct i2c_board_info *i2c_board_info_data);
 
+void __init msm7627_init_regulators(void);
+
 void __init msm7x27_reserve(void);
 void __init msm7x27_init_early(void);
 

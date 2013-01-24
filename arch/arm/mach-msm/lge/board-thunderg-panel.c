@@ -21,15 +21,16 @@
 #include <mach/board_lge.h>
 #include "devices.h"
 #include "board-thunderg.h"
+#include "../board-msm7627-regulator.h"
 
 #define MSM_FB_LCDC_VREG_OP(name, op, level)			\
 do { \
-	vreg = vreg_get(0, name); \
-	vreg_set_level(vreg, level); \
-	if (vreg_##op(vreg)) \
+	vreg = regulator_get(0, name); \
+	regulator_set_voltage(vreg, level, level); \
+	if (regulator_##op(vreg)) \
 		printk(KERN_ERR "%s: %s vreg operation failed \n", \
-			(vreg_##op == vreg_enable) ? "vreg_enable" \
-				: "vreg_disable", name); \
+			(regulator_##op == regulator_enable) ? "regulator_enable" \
+				: "regulator_disable", name); \
 } while (0)
 
 static char *msm_fb_vreg[] = {
@@ -40,7 +41,7 @@ static char *msm_fb_vreg[] = {
 static int mddi_power_save_on;
 static int msm_fb_mddi_power_save(int on)
 {
-	struct vreg *vreg;
+	struct regulator *vreg;
 	int flag_on = !!on;
 
 	if (mddi_power_save_on == flag_on)
@@ -49,8 +50,8 @@ static int msm_fb_mddi_power_save(int on)
 	mddi_power_save_on = flag_on;
 
 	if (on) {
-		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[0], enable, 1800);
-		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[1], enable, 2800);
+		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[0], enable, 1800000);
+		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[1], enable, 2800000);
 	} else{
 		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[0], disable, 0);
 		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[1], disable, 0);
