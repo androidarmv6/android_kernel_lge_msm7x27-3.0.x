@@ -59,6 +59,10 @@ int vsync_start_y_adjust = 4;
 #define HITACHI_LCD_WORKAROUND
 #endif
 
+#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
+#define NOVATEK_LCD_WORKAROUND
+#endif
+
 #ifdef HITACHI_LCD_WORKAROUND
 
 struct display_table {
@@ -86,7 +90,7 @@ extern void display_table(struct display_table *table, unsigned int count);
 /* LGE_CHANGE [dojip.kim@lge.com] 2010-05-20,
  * add code to prevent LCD shift
  */
-#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
+#ifdef NOVATEK_LCD_WORKAROUND
 #define REGFLAG_END_OF_TABLE      0xFFFF   // END OF REGISTERS MARKER
 
 	struct display_table {
@@ -230,8 +234,8 @@ static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
 	display_table(mddi_hitachi_position_table, sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
 #endif
 
-#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
-	display_table(mddi_novatek_position_table, 
+#ifdef NOVATEK_LCD_WORKAROUND
+	display_table(mddi_novatek_position_table,
 	sizeof(mddi_novatek_position_table) / sizeof(struct display_table));
 #endif
 
