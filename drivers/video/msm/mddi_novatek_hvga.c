@@ -105,6 +105,13 @@ struct display_table {
     unsigned val_list[256];
 };
 
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+static struct display_table mddi_novatek_2c[] = {
+	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#endif
+
 #define REGFLAG_DELAY             0XFFFE
 #define REGFLAG_END_OF_TABLE      0xFFFF   // END OF REGISTERS MARKER
 
@@ -605,7 +612,7 @@ ssize_t mddi_novatek_lcd_store_onoff(struct device *dev, struct device_attribute
 #if 0
 int mddi_novatek_position(void)
 {
-	display_table_novatek(mddi_novatek_position_table, ARRAY_SIZE(mddi_notatek_position_table));
+	display_table_novatek(mddi_novatek_position_table, ARRAY_SIZE(mddi_novatek_position_table));
 	return 0;
 }
 EXPORT_SYMBOL(mddi_novatek_position);
