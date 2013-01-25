@@ -164,6 +164,22 @@ config FB_MSM_MDDI_AUTO_DETECT
 	select FB_MSM_MDDI
 	default n
 
+# LGE_CHANGE_S [minjong.gong] 2010-03-24, Google Mass CDMA Hitachi MDDI I/F LCD
+config FB_MSM_MDDI_HITACHI_HVGA
+	bool "MDDI HITACHI HVGA Panel"
+	select FB_MSM_MDDI
+	---help---
+	  Support for MDDI HITACHI HVGA(320x480) Panel.
+# LGE_CHANGE_E [minjong.gong] 2010-03-24, Google Mass CDMA Hitachi MDDI I/F LCD
+
+# LGE_CHANGE_S [dojip.kim@lge.com] 2010-04-23, Thunder Sprint Sharp(NOVATEK) MDDI I/F LCD
+config FB_MSM_MDDI_NOVATEK_HVGA
+	bool "MDDI Sharp(NOVATEK) HVGA Panel"
+	select FB_MSM_MDDI
+	---help---
+	  Support for MDDI NOVATEK HVGA(320x480) Panel.
+# LGE_CHANGE_E [dojip.kim@lge.com] 2010-04-23, Thunder Sprint Sharp(NOVATEK) MDDI I/F LCD
+
 config FB_MSM_LCDC_AUTO_DETECT
 	bool
 	select FB_MSM_LCDC
@@ -975,3 +991,4 @@ if FB_MSM_MDSS
 	source "drivers/video/msm/mdss/Kconfig"
 endif
 endif
+
