@@ -929,13 +929,8 @@ void __init msm_device_i2c_init(void)
 	if (gpio_request(96, "i2c_sec_dat"))
 		pr_err("failed to request gpio i2c_sec_dat\n");
 
-	if (cpu_is_msm7x27())
-		msm_i2c_pdata.pm_lat =
+	msm_i2c_pdata.pm_lat =
 		msm7x27_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN]
-		.latency;
-	else
-		msm_i2c_pdata.pm_lat =
-		msm7x25_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN]
 		.latency;
 
 	msm_device_i2c.dev.platform_data = &msm_i2c_pdata;

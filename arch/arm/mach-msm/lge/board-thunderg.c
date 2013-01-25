@@ -485,8 +485,6 @@ static void __init msm7x2x_map_io(void)
 {
 	msm_map_common_io();
 
-	msm_msm7x2x_allocate_memory_regions();
-
 	if (socinfo_init() < 0)
 		BUG();
 
