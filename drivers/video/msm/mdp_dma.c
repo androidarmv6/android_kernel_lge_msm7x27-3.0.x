@@ -59,15 +59,23 @@ int vsync_start_y_adjust = 4;
 #define HITACHI_LCD_WORKAROUND
 #endif
 
-#ifdef HITACHI_LCD_WORKAROUND
+#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
+#define NOVATEK_LCD_WORKAROUND
+#endif
 
 struct display_table {
     unsigned reg;
     unsigned char count;
+#ifdef HITACHI_LCD_WORKAROUND
     unsigned char val_list[20];
+#else
+    unsigned val_list[256];
+#endif
 };
 
 #define REGFLAG_END_OF_TABLE      0xFFFF   // END OF REGISTERS MARKER
+
+#ifdef HITACHI_LCD_WORKAROUND
 
 static struct display_table mddi_hitachi_2c[] = {
 	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
@@ -80,36 +88,28 @@ static struct display_table mddi_hitachi_position_table[] = {
 	{0x2b,  4, {0x00, 0x00, 0x01, 0xdf}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
-extern void display_table(struct display_table *table, unsigned int count);
+
 #endif
 
-/* LGE_CHANGE [dojip.kim@lge.com] 2010-05-20,
- * add code to prevent LCD shift
- */
-#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
-#define REGFLAG_END_OF_TABLE      0xFFFF   // END OF REGISTERS MARKER
+//#ifdef NOVATEK_LCD_WORKAROUND
 
-	struct display_table {
-	    unsigned reg;
-	    unsigned char count;
-	    unsigned val_list[256];
-	};
+static struct display_table mddi_novatek_position_table[] = {
+	// set horizontal address 
+	{0x2a00, 1, {0x0000}}, // XSA
+	{0x2a01, 1, {0x0000}}, // XSA
+	{0x2a02, 1, {0x0000}}, // XEA
+	{0x2a03, 1, {0x013f}}, // XEA, 320-1
+	// set vertical address 
+	{0x2b00, 1, {0x0000}}, // YSA
+	{0x2b01, 1, {0x0000}}, // YSA
+	{0x2b02, 1, {0x0000}}, // YEA
+	{0x2b03, 1, {0x01df}}, // YEA, 480-1
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
 
-	struct display_table mddi_novatek_position_table[] = {
-		// set horizontal address 
-		{0x2a00, 1, {0x0000}}, // XSA
-		{0x2a01, 1, {0x0000}}, // XSA
-		{0x2a02, 1, {0x0000}}, // XEA
-		{0x2a03, 1, {0x013f}}, // XEA, 320-1
-		// set vertical address 
-		{0x2b00, 1, {0x0000}}, // YSA
-		{0x2b01, 1, {0x0000}}, // YSA
-		{0x2b02, 1, {0x0000}}, // YEA
-		{0x2b03, 1, {0x01df}}, // YEA, 480-1
-		{REGFLAG_END_OF_TABLE, 0x00, {}}
-	};
+//#endif
+
 extern void display_table(struct display_table *table, unsigned int count);
-#endif
 
 static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
 {
@@ -230,8 +230,8 @@ static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
 	display_table(mddi_hitachi_position_table, sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
 #endif
 
-#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
-	display_table(mddi_novatek_position_table, 
+#ifdef NOVATEK_LCD_WORKAROUND
+	display_table(mddi_novatek_position_table,
 	sizeof(mddi_novatek_position_table) / sizeof(struct display_table));
 #endif
 
