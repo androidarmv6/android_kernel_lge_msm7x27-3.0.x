@@ -658,7 +658,7 @@ static int mddi_novatek_lcd_init(void)
 	int ret;
 	struct msm_panel_info *pinfo;
 
-#if CONFIG_FB_MSM_MDDI_AUTO_DETECT
+//#if CONFIG_FB_MSM_MDDI_AUTO_DETECT
 
 //	u32 id;
 
@@ -686,7 +686,7 @@ static int mddi_novatek_lcd_init(void)
 			return 0;
 		}
 	}
-#endif/*CONFIG_FB_MSM_MDDI_AUTO_DETECT*/
+//#endif/*CONFIG_FB_MSM_MDDI_AUTO_DETECT*/
 
 	ret = platform_driver_register(&this_driver);
 	if (!ret) {
