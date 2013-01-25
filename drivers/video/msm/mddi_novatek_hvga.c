@@ -365,7 +365,7 @@ static struct display_table mddi_novatek_init_on[] = {
 };
 #endif/*MDDI_NOVATEK_PANEL_MTP_PROG*/
 
-void display_table_novatek(struct display_table *table, unsigned int count)
+void display_table(struct display_table *table, unsigned int count)
 {
 	unsigned int i;
 
@@ -605,7 +605,7 @@ ssize_t mddi_novatek_lcd_store_onoff(struct device *dev, struct device_attribute
 #if 0
 int mddi_novatek_position(void)
 {
-	display_table_novatek(mddi_novatek_position_table, ARRAY_SIZE(mddi_notatek_position_table));
+	display_table_novatek(mddi_novatek_position_table, ARRAY_SIZE(mddi_novatek_position_table));
 	return 0;
 }
 EXPORT_SYMBOL(mddi_novatek_position);
