@@ -67,7 +67,7 @@ struct display_table {
     unsigned reg;
     unsigned char count;
 #ifdef HITACHI_LCD_WORKAROUND
-    unsigned char val_list[20];
+    unsigned val_list[20];
 #else
     unsigned val_list[256];
 #endif
