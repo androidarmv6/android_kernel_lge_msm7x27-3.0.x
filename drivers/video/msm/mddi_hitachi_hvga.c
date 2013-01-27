@@ -370,7 +370,7 @@ void display_table(struct display_table *table, unsigned int count)
 //LGE_S mahesh.kamarnat@lge.com -- LCD Patch
                 mddi_host_register_cmds_write8(reg, table[i].count, table[i].val_list, 0, 0, 0);
 //LGE_E mahesh.kamarnat@lge.com -- LCD Patch
-		//EPRINTK("%s: reg : %x, val : %x.\n", __func__, reg, table[i].val_list[0]);
+				//EPRINTK("%s: reg : %x, val : %x.\n", __func__, reg, table[i].val_list[0]);
        	}
     }
 	
