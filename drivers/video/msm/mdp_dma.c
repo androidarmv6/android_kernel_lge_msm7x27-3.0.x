@@ -80,7 +80,7 @@ static struct display_table mddi_hitachi_position_table[] = {
 	{0x2b,  4, {0x00, 0x00, 0x01, 0xdf}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
-extern void display_table(struct display_table *table, unsigned int count);
+extern void display_table_hitachi(struct display_table *table, unsigned int count);
 #endif
 
 /* LGE_CHANGE [dojip.kim@lge.com] 2010-05-20,
@@ -108,7 +108,7 @@ extern void display_table(struct display_table *table, unsigned int count);
 		{0x2b03, 1, {0x01df}}, // YEA, 480-1
 		{REGFLAG_END_OF_TABLE, 0x00, {}}
 	};
-extern void display_table(struct display_table *table, unsigned int count);
+extern void display_table_novatek(struct display_table *table, unsigned int count);
 #endif
 
 static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
@@ -222,17 +222,16 @@ static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
   * 2010-04-22, minjong.gong@lge.com
   */
 #ifdef HITACHI_LCD_WORKAROUND
-	display_table(mddi_hitachi_2c, sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
+	display_table_hitachi(mddi_hitachi_2c, sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
 /* LGE_CHANGE
   * Add code to prevent LCD shift
   * 2010-05-18, minjong.gong@lge.com
   */
-	display_table(mddi_hitachi_position_table, sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
+	display_table_hitachi(mddi_hitachi_position_table, sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
 #endif
 
 #ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
-	display_table(mddi_novatek_position_table, 
-	sizeof(mddi_novatek_position_table) / sizeof(struct display_table));
+	display_table_novatek(mddi_novatek_position_table,  sizeof(mddi_novatek_position_table) / sizeof(struct display_table));
 #endif
 
 	/* MDP cmd block enable */
