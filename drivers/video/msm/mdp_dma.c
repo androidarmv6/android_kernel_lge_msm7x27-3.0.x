@@ -67,7 +67,7 @@ struct display_table {
     unsigned reg;
     unsigned char count;
 #ifdef HITACHI_LCD_WORKAROUND
-    unsigned val_list[20];
+    unsigned char val_list[20];
 #else
     unsigned val_list[256];
 #endif
@@ -91,7 +91,7 @@ static struct display_table mddi_hitachi_position_table[] = {
 
 #endif
 
-#ifdef NOVATEK_LCD_WORKAROUND
+//#ifdef NOVATEK_LCD_WORKAROUND
 
 static struct display_table mddi_novatek_position_table[] = {
 	// set horizontal address 
@@ -107,7 +107,7 @@ static struct display_table mddi_novatek_position_table[] = {
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
 
-#endif
+//#endif
 
 extern void display_table(struct display_table *table, unsigned int count);
 
