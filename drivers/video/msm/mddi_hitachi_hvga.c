@@ -347,7 +347,7 @@ static struct display_table mddi_hitachi_initialize_3rd_p500[] = {
 };
 #endif
 
-void display_table(struct display_table *table, unsigned int count)
+void display_table_hitachi(struct display_table *table, unsigned int count)
 {
 	unsigned int i;
 
@@ -541,13 +541,13 @@ static void hitachi_workaround(void)
 		/* Use workaround code for 1st cut LCD.
 		 * 2010-04-22, minjong.gong@lge.com
 		 */
-		display_table(mddi_hitachi_2c,
+		display_table_hitachi(mddi_hitachi_2c,
 					  sizeof(mddi_hitachi_2c) / sizeof(struct display_table));
 	}
 	/* Add code to prevent LCD shift.
 	 * 2010-05-18, minjong.gong@lge.com
 	 */
-	display_table(mddi_hitachi_position_table,
+	display_table_hitachi(mddi_hitachi_position_table,
 				  sizeof(mddi_hitachi_position_table) / sizeof(struct display_table));
 }
 #endif
@@ -568,27 +568,25 @@ static int mddi_hitachi_lcd_on(struct platform_device *pdev)
 #if defined(CONFIG_MACH_MSM7X27_THUNDERG)
 	if (lge_bd_rev <= LGE_REV_E) {
 		EPRINTK("ThunderG ==> lge_bd_rev = %d : 1st LCD initial\n", lge_bd_rev);
-		display_table(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
-		display_table(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
 	} else {
 		EPRINTK("ThunderG ==> lge_bd_rev = %d : 3rd LCD initial\n", lge_bd_rev);
-		display_table(mddi_hitachi_initialize_3rd_p500, sizeof(mddi_hitachi_initialize_3rd_p500)/sizeof(struct display_table));
-		display_table(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_3rd_p500, sizeof(mddi_hitachi_initialize_3rd_p500)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
 	}
 #elif defined(CONFIG_MACH_MSM7X27_THUNDERA)
-	display_table(mddi_hitachi_initialize_1st,
-			sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
-	display_table(mddi_hitachi_display_on_1st,
-			sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
+	display_table_hitachi(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
+	display_table_hitachi(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
 #elif defined(CONFIG_MACH_MSM7X27_THUNDERC)
 	if (lge_bd_rev <= LGE_REV_D) {
 		EPRINTK("ThunderC ==> lge_bd_rev = %d : 1st LCD initial\n", lge_bd_rev);
-		display_table(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
-		display_table(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
 	} else {
 		EPRINTK("ThunderC ==> lge_bd_rev = %d : 3rd LCD initial\n", lge_bd_rev);
-		display_table(mddi_hitachi_initialize_3rd_vs660, sizeof(mddi_hitachi_initialize_3rd_vs660)/sizeof(struct display_table));
-		display_table(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_3rd_vs660, sizeof(mddi_hitachi_initialize_3rd_vs660)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
 	}
 #endif
 	is_lcd_on = TRUE;
@@ -609,29 +607,27 @@ static int mddi_hitachi_lcd_store_on(void)
 	mddi_hitachi_lcd_panel_store_poweron();
 #if defined(CONFIG_MACH_MSM7X27_THUNDERG)
 	if (lge_bd_rev <= LGE_REV_E) {
-		display_table(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
 		mdelay(200);
-		display_table(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
 	} else {
-		display_table(mddi_hitachi_initialize_3rd_p500, sizeof(mddi_hitachi_initialize_3rd_p500)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_3rd_p500, sizeof(mddi_hitachi_initialize_3rd_p500)/sizeof(struct display_table));
 		mdelay(200);
-		display_table(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
 	}
 #elif defined(CONFIG_MACH_MSM7X27_THUNDERA)
-	display_table(mddi_hitachi_initialize_1st,
-			sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
+	display_table_hitachi(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
 	mdelay(200);
-	display_table(mddi_hitachi_display_on_1st,
-			sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
+	display_table_hitachi(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
 #elif defined(CONFIG_MACH_MSM7X27_THUNDERC)
 	if (lge_bd_rev <= LGE_REV_D) {
-		display_table(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_1st, sizeof(mddi_hitachi_initialize_1st)/sizeof(struct display_table));
 		mdelay(200);
-		display_table(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_1st, sizeof(mddi_hitachi_display_on_1st) / sizeof(struct display_table));
 	} else {
-		display_table(mddi_hitachi_initialize_3rd_vs660, sizeof(mddi_hitachi_initialize_3rd_vs660)/sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_initialize_3rd_vs660, sizeof(mddi_hitachi_initialize_3rd_vs660)/sizeof(struct display_table));
 		mdelay(200);
-		display_table(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
+		display_table_hitachi(mddi_hitachi_display_on_3rd, sizeof(mddi_hitachi_display_on_3rd) / sizeof(struct display_table));
 	}
 #endif
 	is_lcd_on = TRUE;
@@ -641,7 +637,7 @@ static int mddi_hitachi_lcd_store_on(void)
 static int mddi_hitachi_lcd_off(struct platform_device *pdev)
 {
 //LGE_S mahesh.kamarnat@lge.com -- LCD Patch
-//	display_table(mddi_hitachi_sleep_mode_on_data, sizeof(mddi_hitachi_sleep_mode_on_data)/sizeof(struct display_table));
+//	display_table_hitachi(mddi_hitachi_sleep_mode_on_data, sizeof(mddi_hitachi_sleep_mode_on_data)/sizeof(struct display_table));
 //LGE_E mahesh.kamarnat@lge.com -- LCD Patch
 	mddi_hitachi_lcd_panel_poweroff();
 	is_lcd_on = FALSE;
@@ -663,12 +659,12 @@ ssize_t mddi_hitachi_lcd_store_onoff(struct device *dev, struct device_attribute
 	EPRINTK("%s: onoff : %d\n", __func__, onoff);
 	
 	if(onoff) {
-//		display_table(mddi_hitachi_display_on, sizeof(mddi_hitachi_display_on) / sizeof(struct display_table));
+//		display_table_hitachi(mddi_hitachi_display_on, sizeof(mddi_hitachi_display_on) / sizeof(struct display_table));
 		mddi_hitachi_lcd_store_on();
 		is_lcd_on = TRUE;
 	}
 	else {
-//		display_table(mddi_hitachi_display_off, sizeof(mddi_hitachi_display_off) / sizeof(struct display_table));
+//		display_table_hitachi(mddi_hitachi_display_off, sizeof(mddi_hitachi_display_off) / sizeof(struct display_table));
 		mddi_hitachi_lcd_off(&dummy_pdev);
 		is_lcd_on = FALSE;
 	}
@@ -679,7 +675,7 @@ ssize_t mddi_hitachi_lcd_store_onoff(struct device *dev, struct device_attribute
 
 int mddi_hitachi_position(void)
 {
-	display_table(mddi_hitachi_position_table, ARRAY_SIZE(mddi_hitachi_position_table));
+	display_table_hitachi(mddi_hitachi_position_table, ARRAY_SIZE(mddi_hitachi_position_table));
 	return 0;
 }
 EXPORT_SYMBOL(mddi_hitachi_position);
