@@ -20,7 +20,7 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 #include <linux/input.h>
-#ifdef CONFIG_MACH_MSM7X27_UNIVA
+#if defined(CONFIG_MACH_MSM7X27_UNIVA) && !defined(CONFIG_LGE_HEADSET)
 #include <linux/switch.h>
 #endif
 
@@ -29,6 +29,9 @@
 #include <mach/msm_rpcrouter.h>
 #include <mach/board.h>
 #include <mach/rpc_server_handset.h>
+#ifndef CONFIG_MACH_MSM7X27_ALOHAV
+#include <mach/gpio.h>
+#endif
 
 #ifndef CONFIG_MACH_MSM7X27_ALOHAV
 #include <mach/gpio.h>
@@ -64,6 +67,7 @@
 #define HS_HEADSET_MICROPHONE_K 0xF7
 #define HS_REL_K		0xFF	/* key release */
 
+#ifndef CONFIG_MACH_MSM7X27_ALOHAV
 /* LGE_CHANGE
  * for hook key
  * 2010-03-03, junyeob.an
@@ -71,8 +75,10 @@
  * 2010-04-19
  */
 #define HS_ON_HOOK_K		0x01	/* headphone hook key */
-#define GPIO_EAR_SENSE_BIAS		0x1D
+#define GPIO_EAR_SENSE_BIAS	0x1D
 #define HS_DESKDOCK_DETECT	0x02	/* deskdock detect */
+#endif
+
 #define SW_HEADPHONE_INSERT_W_MIC 1 /* HS with mic */
 
 #define KEY(hs_key, input_key) ((hs_key << 24) | input_key)
@@ -215,13 +221,17 @@ static const uint32_t hs_key_map[] = {
 	KEY(HS_STEREO_HEADSET_K, SW_HEADPHONE_INSERT_W_MIC),
 	KEY(HS_HEADSET_HEADPHONE_K, SW_HEADPHONE_INSERT),
 	KEY(HS_HEADSET_MICROPHONE_K, SW_MICROPHONE_INSERT),
+#ifndef CONFIG_MACH_MSM7X27_ALOHAV
+	KEY(HS_ON_HOOK_K, KEY_MEDIA),
+	KEY(HS_DESKDOCK_DETECT, KEY_CONNECT),
+#else
 	KEY(HS_HEADSET_SWITCH_K, KEY_MEDIA),
 	KEY(HS_HEADSET_SWITCH_2_K, KEY_VOLUMEUP),
 	KEY(HS_HEADSET_SWITCH_3_K, KEY_VOLUMEDOWN),
 #ifdef CONFIG_MACH_MSM7X27_UNIVA
 	KEY(HS_DESKDOCK_DETECT, KEY_CONNECT),
 #endif
-#endif
+f#endif
 	0
 };
 
@@ -248,7 +258,7 @@ static struct hs_subs_rpc_req *hs_subs_req;
 
 struct msm_handset {
 	struct input_dev *ipdev;
-#ifdef CONFIG_MACH_MSM7X27_UNIVA
+#if defined(CONFIG_MACH_MSM7X27_UNIVA) && !defined(CONFIG_LGE_HEADSET)
 	struct switch_dev sdev;
 #endif
 	struct msm_handset_platform_data *hs_pdata;
@@ -259,6 +269,11 @@ static struct msm_rpc_client *rpc_client;
 static struct msm_handset *hs;
 static void (*deskdock_detect_callback)(int);
 
+#if defined(CONFIG_LGE_DIAGTEST)
+/* LGE_CHANGES_S [woonghee@lge.com] 2010-01-23, [VS740] for key test */
+extern uint8_t if_condition_is_on_key_buffering;
+extern uint8_t lgf_factor_key_test_rsp(char);
+#endif
 #if defined(CONFIG_LGE_DIAGTEST)
 /* LGE_CHANGES_S [woonghee@lge.com] 2010-01-23, [VS740] for key test */
 extern uint8_t if_condition_is_on_key_buffering;
@@ -368,6 +383,7 @@ static void report_hs_key(uint32_t key_code, uint32_t key_parm)
 			lgf_factor_key_test_rsp((uint8_t)key);
 #endif
 		break;
+#endif /*CONFIG_MACH_MSM7X27_ALOHAG */
 	case SW_HEADPHONE_INSERT_W_MIC:
 		hs->mic_on = hs->hs_on = (key_code != HS_REL_K) ? 1 : 0;
 		input_report_switch(hs->ipdev, SW_HEADPHONE_INSERT,
@@ -708,7 +724,8 @@ static void __devexit hs_rpc_deinit(void)
 		msm_rpc_unregister_client(rpc_client);
 }
 
-#ifdef CONFIG_MACH_MSM7X27_UNIVA
+
+#if defined(CONFIG_MACH_MSM7X27_UNIVA) && !defined(CONFIG_LGE_HEADSET)
 static ssize_t msm_headset_print_name(struct switch_dev *sdev, char *buf)
 {
 	switch (switch_get_state(&hs->sdev)) {
@@ -730,7 +747,7 @@ static int __devinit hs_probe(struct platform_device *pdev)
 	if (!hs)
 		return -ENOMEM;
 
-#ifdef CONFIG_MACH_MSM7X27_UNIVA
+#if defined(CONFIG_MACH_MSM7X27_UNIVA) && !defined(CONFIG_LGE_HEADSET)
 	hs->sdev.name	= "h2w";
 	hs->sdev.print_name = msm_headset_print_name;
 
@@ -791,7 +808,7 @@ err_hs_rpc_init:
 err_reg_input_dev:
 	input_free_device(ipdev);
 err_alloc_input_dev:
-#ifdef CONFIG_MACH_MSM7X27_UNIVA
+#if defined(CONFIG_MACH_MSM7X27_UNIVA) && !defined(CONFIG_LGE_HEADSET)
 	switch_dev_unregister(&hs->sdev);
 err_switch_dev_register:
 #endif
@@ -804,7 +821,7 @@ static int __devexit hs_remove(struct platform_device *pdev)
 	struct msm_handset *hs = platform_get_drvdata(pdev);
 
 	input_unregister_device(hs->ipdev);
-#ifdef CONFIG_MACH_MSM7X27_UNIVA
+#if defined(CONFIG_MACH_MSM7X27_UNIVA) && !defined(CONFIG_LGE_HEADSET)
 	switch_dev_unregister(&hs->sdev);
 #endif
 	kfree(hs);
