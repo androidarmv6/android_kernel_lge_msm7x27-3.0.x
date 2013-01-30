@@ -358,6 +358,11 @@ static void msm7x27_wlan_init(void)
 	}
 }
 
+struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
+	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
+	.p_addr = 0,
+};
+
 /* decrease FB pmem size because thunderg uses hvga
  * qualcomm's original value depends on wvga resolution
  * 2010-04-18, cleaneye.kim@lge.com
@@ -380,8 +385,7 @@ static void __init msm7x2x_init(void)
 			&msm_device_uart1.dev, 1);
 #endif
 
-	if (cpu_is_msm7x27())
-		acpuclk_init(&acpuclk_7x27_soc_data);
+	acpuclk_init(&acpuclk_7x27_soc_data);
 
 	msm_add_pmem_devices();
 	msm_add_fb_device();
@@ -401,12 +405,7 @@ static void __init msm7x2x_init(void)
 	msm_device_i2c_init();
 	i2c_register_board_info(0, i2c_devices, ARRAY_SIZE(i2c_devices));
 
-	if (cpu_is_msm7x27())
-		msm_pm_set_platform_data(msm7x27_pm_data,
-					ARRAY_SIZE(msm7x27_pm_data));
-	else
-		msm_pm_set_platform_data(msm7x25_pm_data,
-					ARRAY_SIZE(msm7x25_pm_data));
+	msm_pm_set_platform_data(msm7x27_pm_data, ARRAY_SIZE(msm7x27_pm_data));
 
 	BUG_ON(msm_pm_boot_init(&msm_pm_boot_pdata));
 
@@ -448,10 +447,10 @@ static void __init msm7x2x_map_io(void)
 MACHINE_START(MSM7X27_PECAN, "PECAN board (LGE LGP350)")
 	.boot_params	= PLAT_PHYS_OFFSET + 0x100,
 	.map_io		= msm7x2x_map_io,
-	.reserve  	= msm7x27_reserve,
+//	.reserve  	= msm7x27_reserve,
 	.init_irq	= msm7x2x_init_irq,
 	.init_machine	= msm7x2x_init,
 	.timer		= &msm_timer,
-	.init_early     = msm7x27_init_early,
+//	.init_early     = msm7x27_init_early,
 	.handle_irq     = vic_handle_irq,
 MACHINE_END

@@ -744,7 +744,7 @@ static int ami304_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int ami304_ioctl(struct inode *inode, struct file *file, unsigned int cmd,unsigned long arg)
+static long ami304_ioctl(struct file *file, unsigned int cmd,unsigned long arg)
 {
 	char strbuf[AMI304_BUFSIZE];
 	int controlbuf[AMI304_CB_LENGTH];
@@ -754,7 +754,7 @@ static int ami304_ioctl(struct inode *inode, struct file *file, unsigned int cmd
 	long pedodata[3];	
 	int pedoparam[AMI304_PD_LENGTH];
 	void __user *data;
-	int retval=0;
+	long retval=0;
 	int mode=0,chipset=0;
 	int iEnReport;
 
@@ -1014,8 +1014,7 @@ static int ami304daemon_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int ami304daemon_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
-	   unsigned long arg)
+static long ami304daemon_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int valuebuf[4];
 	int calidata[7];
@@ -1026,7 +1025,7 @@ static int ami304daemon_ioctl(struct inode *inode, struct file *file, unsigned i
 	int pedoparam[AMI304_PD_LENGTH];	
 	char i2creaddata[3];
 	void __user *data;
-	int retval=0;
+	long retval=0;
 	int mode;
 #if !defined(CONFIG_HAS_EARLYSUSPEND)
 	int iEnReport;
@@ -1269,13 +1268,13 @@ static int ami304hal_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int ami304hal_ioctl(struct inode *inode, struct file *file, unsigned int cmd,unsigned long arg)
+static long ami304hal_ioctl(struct file *file, unsigned int cmd,unsigned long arg)
 {
 	int controlbuf[AMI304_CB_LENGTH];
 	char strbuf[AMI304_BUFSIZE];
 	int pedoparam[AMI304_PD_LENGTH];		
 	void __user *data;
-	int retval=0;
+	long retval=0;
 	switch (cmd) {
 		case AMI304HAL_IOCTL_GET_SENSORDATA:
 			data = (void __user *) arg;
@@ -1412,7 +1411,7 @@ static struct file_operations ami304_fops = {
 	.owner = THIS_MODULE,
 	.open = ami304_open,
 	.release = ami304_release,
-	.ioctl = ami304_ioctl,
+	.unlocked_ioctl = ami304_ioctl,
 };
 
 static struct miscdevice ami304_device = {
@@ -1426,7 +1425,7 @@ static struct file_operations ami304daemon_fops = {
 	.owner = THIS_MODULE,
 	.open = ami304daemon_open,
 	.release = ami304daemon_release,
-	.ioctl = ami304daemon_ioctl,
+	.unlocked_ioctl = ami304daemon_ioctl,
 };
 
 static struct miscdevice ami304daemon_device = {
@@ -1439,7 +1438,7 @@ static struct file_operations ami304hal_fops = {
 	.owner = THIS_MODULE,
 	.open = ami304hal_open,
 	.release = ami304hal_release,
-	.ioctl = ami304hal_ioctl,
+	.unlocked_ioctl = ami304hal_ioctl,
 };
 
 static struct miscdevice ami304hal_device = {

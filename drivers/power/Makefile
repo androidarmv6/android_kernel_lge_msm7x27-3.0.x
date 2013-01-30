@@ -49,6 +49,7 @@ obj-$(CONFIG_PM8XXX_CCADC)	+= pm8xxx-ccadc.o
 obj-$(CONFIG_PM8921_BMS)	+= pm8921-bms.o
 obj-$(CONFIG_PM8921_CHARGER)	+= pm8921-charger.o
 obj-$(CONFIG_LTC4088_CHARGER)	+= ltc4088-charger.o
+obj-$(CONFIG_MAX17040_FUEL_GAUGE)	+= max17040.o
 
 ifeq ($(CONFIG_MACH_MSM7X27_ALOHAV),y)
 	BATT_DRIVER = msm_battery_alohav.o
@@ -66,6 +67,4 @@ ifeq ($(CONFIG_MACH_MSM7X27_GISELE),y)
 endif
 BATT_DRIVER ?= msm_battery.o
 msm_batt-objs := $(BATT_DRIVER)
-obj-$(CONFIG_BATTERY_MSM)	+= msm_batt.o
 
-obj-$(CONFIG_MAX17040_FUEL_GAUGE)	+= max17040.o

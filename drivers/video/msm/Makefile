@@ -3,7 +3,12 @@ obj-y := msm_fb.o
 obj-$(CONFIG_FB_MSM_LOGO) += logo.o
 obj-$(CONFIG_FB_BACKLIGHT) += msm_fb_bl.o
 
-ifeq ($(CONFIG_FB_MSM_MDP_HW),y)
+ifeq ($(CONFIG_FB_MSM_EBI2),y)
+obj-$(CONFIG_FB_MSM_EBI2) += ebi2_host.o
+obj-$(CONFIG_FB_MSM_EBI2) += ebi2_lcd.o
+obj-y += msm_fb_panel.o
+obj-$(CONFIG_FB_MSM_EBI2_EPSON_S1D_QVGA_PANEL) += ebi2_epson_s1d_qvga.o
+else
 
 # MDP
 obj-y += mdp.o
@@ -86,6 +91,7 @@ ifeq ($(CONFIG_FB_MSM_OVERLAY),y)
 obj-$(CONFIG_FB_MSM_TVOUT) += mdp4_overlay_atv.o
 endif
 
+
 # MSM FB Panel
 obj-y += msm_fb_panel.o
 obj-$(CONFIG_FB_MSM_EBI2_TMD_QVGA_EPSON_QCIF) += ebi2_tmd20.o
@@ -101,6 +107,8 @@ obj-y += mddi_toshiba_wvga.o
 obj-y += mddi_sharp.o
 obj-y += mddi_orise.o
 obj-y += mddi_quickvx.o
+obj-y += mddi_hitachi_hvga.o
+obj-y += mddi_novatek_hvga.o
 else
 obj-$(CONFIG_FB_MSM_MDDI_PRISM_WVGA) += mddi_prism.o
 obj-$(CONFIG_FB_MSM_MDDI_TOSHIBA_COMMON) += mddi_toshiba.o
@@ -110,6 +118,8 @@ obj-$(CONFIG_FB_MSM_MDDI_TOSHIBA_WVGA) += mddi_toshiba_wvga.o
 obj-$(CONFIG_FB_MSM_MDDI_SHARP_QVGA_128x128) += mddi_sharp.o
 obj-$(CONFIG_FB_MSM_MDDI_ORISE) += mddi_orise.o
 obj-$(CONFIG_FB_MSM_MDDI_QUICKVX) += mddi_quickvx.o
+obj-$(CONFIG_FB_MSM_MDDI_HITACHI_HVGA) += mddi_hitachi_hvga.o
+obj-$(CONFIG_FB_MSM_MDDI_NOVATEK_HVGA) += mddi_novatek_hvga.o
 endif
 
 ifeq ($(CONFIG_FB_MSM_MIPI_PANEL_DETECT),y)
@@ -165,11 +175,7 @@ obj-$(CONFIG_FB_MSM_WRITEBACK_MSM_PANEL) += mdp4_overlay_writeback.o
 
 obj-$(CONFIG_MSM_VIDC_1080P) += vidc/
 obj-$(CONFIG_MSM_VIDC_720P) += vidc/
-else
-obj-$(CONFIG_FB_MSM_EBI2) += ebi2_host.o
-obj-$(CONFIG_FB_MSM_EBI2) += ebi2_lcd.o
-obj-y += msm_fb_panel.o
-obj-$(CONFIG_FB_MSM_EBI2_EPSON_S1D_QVGA_PANEL) += ebi2_epson_s1d_qvga.o
+
 endif
 
 clean:

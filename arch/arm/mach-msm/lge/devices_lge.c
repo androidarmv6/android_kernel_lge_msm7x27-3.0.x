@@ -47,9 +47,11 @@
 #include <asm/setup.h>
 #endif
 #include <mach/board_lge.h>
+#include "../board-msm7627-regulator.h"
 #include "../devices.h"
 #include "../pm.h"
 #include <mach/socinfo.h>
+#include <linux/bootmem.h>
 
 /* setting board revision information */
 int lge_bd_rev;
@@ -243,12 +245,6 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.memory_type = MEMTYPE_EBI1,
 };
 
-static struct android_pmem_platform_data android_pmem_audio_pdata = {
-	.name = "pmem_audio",
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-	.memory_type = MEMTYPE_EBI1,
-};
 
 static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
@@ -262,20 +258,14 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
-static struct platform_device android_pmem_audio_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_audio_pdata },
-};
 
 static struct platform_device *pmem_devices[] __initdata = {
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_audio_device,
 };
 
 static unsigned pmem_kernel_ebi1_size = PMEM_KERNEL_EBI1_SIZE;
-static void __init pmem_kernel_ebi1_size_setup(char *p)
+static int __init pmem_kernel_ebi1_size_setup(char *p)
 {
 	pmem_kernel_ebi1_size = memparse(p, NULL);
 	return 0;
@@ -288,7 +278,7 @@ static int __init pmem_mdp_size_setup(char *p)
 	pmem_mdp_size = memparse(p, NULL);
 	return 0;
 }
-early_param("pmem_mdp_size=", pmem_mdp_size_setup);
+early_param("pmem_mdp_size", pmem_mdp_size_setup);
 
 static unsigned pmem_adsp_size = MSM_PMEM_ADSP_SIZE;
 static int __init pmem_adsp_size_setup(char *p)
@@ -296,15 +286,7 @@ static int __init pmem_adsp_size_setup(char *p)
 	pmem_adsp_size = memparse(p, NULL);
 	return 0;
 }
-early_param("pmem_adsp_size=", pmem_adsp_size_setup);
-
-static unsigned pmem_audio_size = MSM_PMEM_AUDIO_SIZE;
-static int __init pmem_audio_size_setup(char *p)
-{
-	pmem_audio_size = memparse(p, NULL);
-	return 0;
-}
-early_param("pmem_audio_size", pmem_audio_size_setup);
+early_param("pmem_adsp_size", pmem_adsp_size_setup);
 
 static unsigned pmem_fb_size = MSM_FB_SIZE;
 static int __init fb_size_setup(char *p)
@@ -312,7 +294,7 @@ static int __init fb_size_setup(char *p)
 	pmem_fb_size = memparse(p, NULL);
 	return 0;
 }
-early_param("pmem_fb_size=", fb_size_setup);
+early_param("pmem_fb_size", fb_size_setup);
 
 void __init msm_msm7x2x_allocate_memory_regions(void)
 {
@@ -343,7 +325,6 @@ static void __init size_pmem_devices(void)
 #ifdef CONFIG_ANDROID_PMEM
 	android_pmem_adsp_pdata.size = pmem_adsp_size;
 	android_pmem_pdata.size = pmem_mdp_size;
-	android_pmem_audio_pdata.size = pmem_audio_size;
 #endif
 }
 
@@ -357,7 +338,6 @@ static void __init reserve_pmem_memory(void)
 #ifdef CONFIG_ANDROID_PMEM
 	reserve_memory_for(&android_pmem_adsp_pdata);
 	reserve_memory_for(&android_pmem_pdata);
-	reserve_memory_for(&android_pmem_audio_pdata);
 	msm7x27_reserve_table[MEMTYPE_EBI1].size += pmem_kernel_ebi1_size;
 #endif
 }
@@ -379,13 +359,13 @@ static struct reserve_info msm7x27_reserve_info __initdata = {
 	.paddr_to_memtype = msm7x27_paddr_to_memtype,
 };
 
-static void __init msm7x27_reserve(void)
+void __init msm7x27_reserve(void)
 {
 	reserve_info = &msm7x27_reserve_info;
 	msm_reserve();
 }
 
-static void __init msm7x27_init_early(void)
+void __init msm7x27_init_early(void)
 {
 	msm_msm7x2x_allocate_memory_regions();
 }
@@ -429,7 +409,7 @@ __WEAK struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR] = {
 	.idle_enabled = 1,
 	.latency = 2000,
 	.residency = 0,
-	
+	}
 };
 
 #ifdef CONFIG_USB_G_ANDROID
@@ -479,10 +459,33 @@ static int hsusb_rpc_connect(int connect)
 #endif
 
 #ifdef CONFIG_USB_MSM_OTG_72K
-struct vreg *vreg_3p3;
 static int msm_hsusb_ldo_init(int init)
 {
+	static struct regulator *reg_hsusb;
+	int rc;
 	if (init) {
+		reg_hsusb = regulator_get(NULL, "usb");
+		if (IS_ERR(reg_hsusb)) {
+			rc = PTR_ERR(reg_hsusb);
+			pr_err("%s: could not get regulator: %d\n",
+					__func__, rc);
+			goto out;
+		}
+
+		rc = regulator_set_voltage(reg_hsusb, 3300000, 3300000);
+		if (rc < 0) {
+			pr_err("%s: could not set voltage: %d\n",
+					 __func__, rc);
+			goto usb_reg_fail;
+		}
+
+		rc = regulator_enable(reg_hsusb);
+		if (rc < 0) {
+			pr_err("%s: could not enable regulator: %d\n",
+					__func__, rc);
+			goto usb_reg_fail;
+		}
+
 		/*
 		 * PHY 3.3V analog domain(VDDA33) is powered up by
 		 * an always enabled power supply (LP5900TL-3.3).
@@ -491,15 +494,22 @@ static int msm_hsusb_ldo_init(int init)
 		 * current. Hence USB VREG is explicitly turned
 		 * off here.
 		 */
-		vreg_3p3 = vreg_get(NULL, "usb");
-		if (IS_ERR(vreg_3p3))
-			return PTR_ERR(vreg_3p3);
-		vreg_enable(vreg_3p3);
-		vreg_disable(vreg_3p3);
-		vreg_put(vreg_3p3);
+
+		rc = regulator_disable(reg_hsusb);
+		if (rc < 0) {
+			pr_err("%s: could not disable regulator: %d\n",
+					__func__, rc);
+			goto usb_reg_fail;
+		}
+
+		regulator_put(reg_hsusb);
 	}
 
 	return 0;
+usb_reg_fail:
+	regulator_put(reg_hsusb);
+out:
+	return rc;
 }
 
 static int msm_hsusb_pmic_notif_init(void (*callback)(int online), int init)
@@ -619,10 +629,7 @@ void __init msm_add_usb_devices(void)
 #endif
 }
 
-static struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
-	.mode = MSM_PM_BOOT_CONFIG_RESET_VECTOR_PHYS,
-	.p_addr = 0,
-};
+
 /* setting msm i2c device */
 static void
 msm_i2c_gpio_config(int iface, int config_type)
@@ -658,7 +665,7 @@ static struct msm_i2c_platform_data msm_i2c_pdata = {
 	.aux_dat = 96,
 	.msm_i2c_config_gpio = msm_i2c_gpio_config,
 };
-#if 0 //TODO: once this is booted, port msm7627-regulator for msm7x27
+
 static struct platform_device msm_proccomm_regulator_dev = {
 	.name   = PROCCOMM_REGULATOR_DEV_NAME,
 	.id     = -1,
@@ -667,14 +674,13 @@ static struct platform_device msm_proccomm_regulator_dev = {
 	}
 };
 
-static void __init msm7627_init_regulators(void)
+void __init msm7627_init_regulators(void)
 {
 	int rc = platform_device_register(&msm_proccomm_regulator_dev);
 	if (rc)
 	  pr_err("%s: could not register regulator device: %d\n",
 	     __func__, rc);
 }
-#endif
 
 void __init msm_device_i2c_init(void)
 {
@@ -687,13 +693,8 @@ void __init msm_device_i2c_init(void)
 	if (gpio_request(96, "i2c_sec_dat"))
 		pr_err("failed to request gpio i2c_sec_dat\n");
 
-	if (cpu_is_msm7x27())
-		msm_i2c_pdata.pm_lat =
+	msm_i2c_pdata.pm_lat =
 		msm7x27_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN]
-		.latency;
-	else
-		msm_i2c_pdata.pm_lat =
-		msm7x25_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN]
 		.latency;
 
 	msm_device_i2c.dev.platform_data = &msm_i2c_pdata;
