@@ -350,6 +350,9 @@ struct kr3dh_platform_data {
 	u8 negate_x;
 	u8 negate_y;
 	u8 negate_z;
+#ifdef CONFIG_MACH_MSM7X27_PECAN
+	unsigned int irq_pin;
+#endif
 
 	int (*kr_init)(void);
 	void (*kr_exit)(void);

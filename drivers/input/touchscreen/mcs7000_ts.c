@@ -487,7 +487,6 @@ void mcs7000_firmware_info(unsigned char* fw_ver, unsigned char* hw_ver)
 
 	printk(KERN_INFO "MCS7000 H/W Revision [0x%x]\n", data);
 	*hw_ver = data;
-#endif
 }
 
 static __inline int mcs7000_ts_ioctl_down_i2c_write(unsigned char addr,
@@ -709,7 +708,7 @@ static int mcs7000_ioctl_release(struct inode *inode, struct file *flip) {
 
 static struct file_operations mcs7000_ts_ioctl_fops = {
 	.owner = THIS_MODULE,
-	.unlocked_ioctl = mcs7000_ts_unlocked_ioctl,
+	.unlocked_ioctl = mcs7000_ts_ioctl,
 	.open  = mcs7000_ioctl_open,
 	.release = mcs7000_ioctl_release,
 };

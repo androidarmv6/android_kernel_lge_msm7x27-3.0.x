@@ -4314,10 +4314,18 @@ msmsdcc_check_status(unsigned long data)
 					mmc_hostname(host->mmc),
 					host->oldstat, status);
 #ifdef CONFIG_LGE_BCM432X_PATCH
+#ifdef CONFIG_BCM4325_GPIO_WL_RESET
 			else if (host->plat->status_irq == MSM_GPIO_TO_INT(CONFIG_BCM4325_GPIO_WL_RESET)) {
+#elif CONFIG_BCM4329_GPIO_WL_RESET
+			else if (host->plat->status_irq == MSM_GPIO_TO_INT(CONFIG_BCM4329_GPIO_WL_RESET)) {
+#endif
 				printk(KERN_ERR "[host->plat->status_irq:%d:MSM_GPIO_TO_INIT:%d:status:%d:%s:%d]\n",
 					host->plat->status_irq,
+#ifdef CONFIG_BCM4325_GPIO_WL_RESET
 					MSM_GPIO_TO_INT(CONFIG_BCM4325_GPIO_WL_RESET),
+#elif CONFIG_BCM4329_GPIO_WL_RESET
+					MSM_GPIO_TO_INT(CONFIG_BCM4329_GPIO_WL_RESET),
+#endif
 					status, __func__, __LINE__);
 				mmc_detect_change(host->mmc, 0);
 			}
@@ -6487,7 +6495,11 @@ msmsdcc_runtime_suspend(struct device *dev)
 /* LGE_CHANGE_S, [jisung.yang@lge.com], 2010-04-24, <never sleep policy - host wakeup> */
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
 		//else if (mmc->card && mmc->card->type == MMC_TYPE_SDIO) {
+#if defined(CONFIG_BCM4325_GPIO_WL_RESET)
 		if (host->plat->status_irq == gpio_to_irq(CONFIG_BCM4325_GPIO_WL_RESET)) {
+#elif defined(CONFIG_BCM4329_GPIO_WL_RESET)
+		if (host->plat->status_irq == gpio_to_irq(CONFIG_BCM4329_GPIO_WL_RESET)) {
+#endif
 			if(dhdpm.suspend != NULL) {
 				//rc = dhdpm.suspend(NULL);
 				dhdpm.suspend(NULL);
@@ -6552,7 +6564,11 @@ msmsdcc_runtime_resume(struct device *dev)
 /* LGE_CHANGE_S, [jisung.yang@lge.com], 2010-04-24, <never sleep policy - host wakeup> */
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
 		//if ( mmc->card && mmc->card->type == MMC_TYPE_SDIO) {
+#if defined(CONFIG_BCM4325_GPIO_WL_RESET)
 		if (host->plat->status_irq == gpio_to_irq(CONFIG_BCM4325_GPIO_WL_RESET)) {
+#elif defined(CONFIG_BCM4329_GPIO_WL_RESET)
+		if (host->plat->status_irq == gpio_to_irq(CONFIG_BCM4329_GPIO_WL_RESET)) {
+#endif
 			printk("%s: Enabling SDIO Interrupt \n", __FUNCTION__);
 			//msmsdcc_enable_sdio_irq(mmc, 1); We will confirm whether this function is need ?
 
