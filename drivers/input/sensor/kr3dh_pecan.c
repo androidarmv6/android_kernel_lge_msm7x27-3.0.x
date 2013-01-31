@@ -676,7 +676,7 @@ static int kr3dh_misc_ioctl(struct inode *inode, struct file *file,
 static const struct file_operations kr3dh_misc_fops = {
 	.owner = THIS_MODULE,
 	.open = kr3dh_misc_open,
-	.ioctl = kr3dh_misc_ioctl,
+	.unlocked_ioctl = kr3dh_misc_ioctl,
 };
 
 static struct miscdevice kr3dh_misc_device = {
