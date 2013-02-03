@@ -3,7 +3,7 @@
  *
  * Copyright (C) 1999-2010, Broadcom Corporation
  * 
- *         Unless you and Broadcom execute a separate written software license
+ *      Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
@@ -21,7 +21,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: bcmsdh_sdmmc_linux.c,v 1.1.2.5.6.7.4.4.2.2 2010/10/01 06:21:22 Exp $
+ * $Id: bcmsdh_sdmmc_linux.c,v 1.1.2.5.6.17 2010/08/13 00:36:19 Exp $
  */
 
 #include <typedefs.h>
@@ -43,18 +43,25 @@
 
 #if !defined(SDIO_VENDOR_ID_BROADCOM)
 #define SDIO_VENDOR_ID_BROADCOM		0x02d0
-#endif /* !defined(SDIO_DEVICE_ID_BROADCOM_4325) */
+#endif /* !defined(SDIO_VENDOR_ID_BROADCOM) */
+
+#define SDIO_DEVICE_ID_BROADCOM_DEFAULT	0x0000
+
+#if !defined(SDIO_DEVICE_ID_BROADCOM_4325_SDGWB)
+#define SDIO_DEVICE_ID_BROADCOM_4325_SDGWB	0x0492	/* BCM94325SDGWB */
+#endif /* !defined(SDIO_DEVICE_ID_BROADCOM_4325_SDGWB) */
 #if !defined(SDIO_DEVICE_ID_BROADCOM_4325)
-#define SDIO_DEVICE_ID_BROADCOM_4325	0x0000
+#define SDIO_DEVICE_ID_BROADCOM_4325	0x0493
 #endif /* !defined(SDIO_DEVICE_ID_BROADCOM_4325) */
 #if !defined(SDIO_DEVICE_ID_BROADCOM_4329)
 #define SDIO_DEVICE_ID_BROADCOM_4329	0x4329
 #endif /* !defined(SDIO_DEVICE_ID_BROADCOM_4329) */
 #if !defined(SDIO_DEVICE_ID_BROADCOM_4319)
 #define SDIO_DEVICE_ID_BROADCOM_4319	0x4319
-#endif /* !defined(SDIO_DEVICE_ID_BROADCOM_4319) */
+#endif /* !defined(SDIO_DEVICE_ID_BROADCOM_4329) */
 
 #include <bcmsdh_sdmmc.h>
+
 #include <dhd_dbg.h>
 
 /* LGE_CHANGE_S [yoohoo@lge.com] 2009-11-19, Support Host Wakeup */
@@ -112,7 +119,6 @@ PBCMSDH_SDMMC_INSTANCE gInstance;
 
 extern int bcmsdh_probe(struct device *dev);
 extern int bcmsdh_remove(struct device *dev);
-struct device sdmmc_dev;
 
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
 extern int dhdsdio_bussleep(void *bus, bool sleep);
@@ -157,7 +163,7 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 		if(func->device == 0x4) { /* 4318 */
 			gInstance->func[2] = NULL;
 			sd_trace(("NIC found, calling bcmsdh_probe...\n"));
-			ret = bcmsdh_probe(&sdmmc_dev);
+			ret = bcmsdh_probe(&func->dev);
 		}
 	}
 
@@ -165,7 +171,7 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 
 	if (func->num == 2) {
 		sd_trace(("F2 found, calling bcmsdh_probe...\n"));
-		ret = bcmsdh_probe(&sdmmc_dev);
+		ret = bcmsdh_probe(&func->dev);
 	}
 
 	return ret;
@@ -180,14 +186,15 @@ static void bcmsdh_sdmmc_remove(struct sdio_func *func)
 	sd_info(("Function#: 0x%04x\n", func->num));
 
 	if (func->num == 2) {
-		sd_trace(("F2 found, calling bcmsdh_probe...\n"));
-		bcmsdh_remove(&sdmmc_dev);
+		sd_trace(("F2 found, calling bcmsdh_remove...\n"));
+		bcmsdh_remove(&func->dev);
 	}
 }
 
-
 /* devices we support, null terminated */
 static const struct sdio_device_id bcmsdh_sdmmc_ids[] = {
+	{ SDIO_DEVICE(SDIO_VENDOR_ID_BROADCOM, SDIO_DEVICE_ID_BROADCOM_DEFAULT) },
+	{ SDIO_DEVICE(SDIO_VENDOR_ID_BROADCOM, SDIO_DEVICE_ID_BROADCOM_4325_SDGWB) },
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_BROADCOM, SDIO_DEVICE_ID_BROADCOM_4325) },
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_BROADCOM, SDIO_DEVICE_ID_BROADCOM_4329) },
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_BROADCOM, SDIO_DEVICE_ID_BROADCOM_4319) },
@@ -433,7 +440,6 @@ int sdio_function_init(void)
 	if (!gInstance)
 		return -ENOMEM;
 
-	bzero(&sdmmc_dev, sizeof(sdmmc_dev));
 	error = sdio_register_driver(&bcmsdh_sdmmc_driver);
 
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
@@ -442,7 +448,7 @@ int sdio_function_init(void)
 		DHD_TRACE(("%s: registered with Android PM\n", __FUNCTION__));
 	}
 #endif /* CONFIG_BRCM_LGE_WL_HOSTWAKEUP */
-
+	
 	return error;
 }
 
@@ -453,7 +459,7 @@ extern int bcmsdh_remove(struct device *dev);
 void sdio_function_cleanup(void)
 {
 	sd_trace(("%s Enter\n", __FUNCTION__));
-
+	
 #if defined(CONFIG_BRCM_LGE_WL_HOSTWAKEUP)
 	dhd_enable_sdio_irq(FALSE);
 	dhd_unregister_early_suspend();
@@ -675,3 +681,5 @@ dhd_unregister_early_suspend(void)
 }
 
 #endif	/* CONFIG_BRCM_LGE_WL_HOSTWAKEUP */
+
+
