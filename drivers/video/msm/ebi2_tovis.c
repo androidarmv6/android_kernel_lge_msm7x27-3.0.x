@@ -623,9 +623,9 @@ static int __init tovis_qvga_probe(struct platform_device *pdev)
 	if (ret) {
 		printk("tovis_qvga_probe device_creat_file failed!!!\n");
 	}
-
+#ifndef CONFIG_ARCH_MSM7X27 //copy what was done for e400
 	tovis_pm_qos_req = pm_qos_add_request(PM_QOS_SYSTEM_BUS_FREQ, PM_QOS_DEFAULT_VALUE);
-
+#endif
 	return 0;
 }
 
