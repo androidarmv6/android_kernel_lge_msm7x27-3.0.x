@@ -25,7 +25,6 @@
 
 #include "board-pecan.h"
 
-extern int pclk_rate;
 int mclk_rate = 24000000;
                 
 DEFINE_MUTEX(camera_power_mutex);
@@ -351,10 +350,5 @@ static struct platform_device *pecan_camera_devices[] __initdata = {
 
 void __init lge_add_camera_devices(void)
 {
-  if (lge_bd_rev >= LGE_REV_F)
-    pclk_rate = 32;
-  else
-    pclk_rate = 27;
-
 	platform_add_devices(pecan_camera_devices, ARRAY_SIZE(pecan_camera_devices));
 }
