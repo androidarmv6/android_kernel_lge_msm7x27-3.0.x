@@ -63,19 +63,15 @@ if [ -f arch/arm/boot/zImage ]; then
 rm -f zip-creator/kernel/zImage
 rm -rf zip-creator/system/
 
-mkdir zip-creator/system
-mkdir zip-creator/system/lib
-mkdir zip-creator/system/lib/modules
+# changed antdking "clean up mkdir commands" 04/02/13
+mkdir -p zip-creator/system/lib/modules
 
 cp arch/arm/boot/zImage zip-creator/kernel
-case "$target" in
-p500|p505|p506|p509 ) cp drivers/net/wireless/bcm4325/wireless.ko zip-creator/system/lib/modules/;;
-p350 ) cp drivers/net/wireless/bcm4329/wireless.ko zip-creator/system/lib/modules/;;
-* ) echo "your device isn't supported for wireless. why are you here!"
-esac
-cp drivers/scsi/scsi_wait_scan.ko zip-creator/system/lib/modules
-cp arch/arm/common/cpaccess.ko zip-creator/system/lib/modules
-cp drivers/mmc/card/mmc_test.ko zip-creator/system/lib/modules
+# changed antdking "now copy all created modules" 04/02/13
+# modules
+# (if you get issues with copying wireless drivers then it's your own fault for not cleaning)
+
+find . -name *.ko | xargs cp -a --target-directory=zip-creator/system/lib/modules/
 
 zipfile="lge-3.0.x-$target-$daytime.zip"
 cd zip-creator
