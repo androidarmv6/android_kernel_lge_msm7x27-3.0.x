@@ -659,12 +659,11 @@ static int k3dh_misc_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int k3dh_misc_ioctl(struct inode *inode, struct file *file,
-				unsigned int cmd, unsigned long arg)
+static long k3dh_misc_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int buf[4];
-	int err;
+	long err;
 	int interval;
 	u8 bit_values;
 	struct k3dh_data *kr = file->private_data;
@@ -758,7 +757,7 @@ static int k3dh_misc_ioctl(struct inode *inode, struct file *file,
 static const struct file_operations k3dh_misc_fops = {
 	.owner = THIS_MODULE,
 	.open = k3dh_misc_open,
-	.ioctl = k3dh_misc_ioctl,
+	.unlocked_ioctl = k3dh_misc_ioctl,
 };
 
 static struct miscdevice k3dh_misc_device = {
