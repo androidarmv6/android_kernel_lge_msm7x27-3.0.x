@@ -249,6 +249,39 @@ void* not_supported_command_handler(test_mode_req_type * pReq, DIAG_TEST_MODE_F_
     return pRsp;
 }
 
+void LGF_SendKey(word keycode)
+{
+	struct input_dev* idev = NULL;
+
+	idev = get_ats_input_dev();
+
+	if(idev == NULL)
+		printk("%s: input device addr is NULL\n",__func__);
+
+	input_report_key(idev,(unsigned int)keycode, 1);
+	input_report_key(idev,(unsigned int)keycode, 0);
+
+}
+
+uint8_t if_condition_is_on_air_plain_mode;
+void* LGF_PowerSaveMode(test_mode_req_type* pReq, DIAG_TEST_MODE_F_rsp_type* pRsp)
+{
+	pRsp->ret_stat_code = TEST_OK_S;
+
+	switch(pReq->sleep_mode){
+		case SLEEP_MODE_ON:
+			LGF_SendKey(KEY_END);
+			break;
+		case AIR_PLAIN_MODE_ON:
+			if_condition_is_on_air_plain_mode = 1;
+			set_operation_mode(FALSE);
+			break;
+		default:
+			pRsp->ret_stat_code = TEST_NOT_SUPPORTED_S;
+	}
+	return pRsp;
+}
+
 char external_memory_copy_test(void)
 {
     char return_value = TEST_FAIL_S;
@@ -2270,7 +2303,7 @@ testmode_user_table_entry_type testmode_mstr_tbl[TESTMODE_MSTR_TBL_SIZE] =
     {TEST_MODE_KEY_DATA_TEST,               linux_app_handler,                ARM11_PROCESSOR},
     /* 41 ~ 50 */
     {TEST_MODE_MEMORY_CAPA_TEST,            LGF_MemoryVolumeCheck,            ARM11_PROCESSOR},
-    {TEST_MODE_SLEEP_MODE_TEST,             LGF_TestModeSleepMode,            ARM11_PROCESSOR},
+    {TEST_MODE_SLEEP_MODE_TEST,             LGF_PowerSaveMode,                ARM11_PROCESSOR},
     {TEST_MODE_SPEAKER_PHONE_TEST,          LGF_TestModeSpeakerPhone,         ARM11_PROCESSOR},
     {TEST_MODE_VIRTUAL_SIM_TEST,            LGF_TestModeVirtualSimTest,       ARM11_PROCESSOR},
     {TEST_MODE_PHOTO_SENSER_TEST,           not_supported_command_handler,    ARM11_PROCESSOR},
