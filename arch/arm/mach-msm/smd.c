@@ -574,6 +574,15 @@ static struct notifier_block smsm_pm_nb = {
 	.priority = 0,
 };
 
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+#define LGE_ERROR_MAX_ROW               50
+#define LGE_ERROR_MAX_COLUMN            80
+#define LGE_ERR_MESSAGE_BUF_LEN   (LGE_ERROR_MAX_ROW*LGE_ERROR_MAX_COLUMN +8)
+
+char *error_modem_message = NULL;
+void msm_pm_flush_console(void);
+#endif
+
 void smd_diag(void)
 {
 	char *x;
@@ -588,15 +597,51 @@ void smd_diag(void)
 	x = smem_get_entry(SMEM_ERR_CRASH_LOG, &size);
 	if (x != 0) {
 		x[size - 1] = 0;
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+		pr_err("vvvvv\n");
+#endif
 		pr_err("smem: CRASH LOG\n'%s'\n", x);
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+		pr_err("^^^^^\n");
+#endif
 	}
-}
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+	x = smem_find(SMEM_LGE_ERR_MESSAGE, LGE_ERR_MESSAGE_BUF_LEN);
+	if (x != 0) {
+		int i;
+		char *message = (char *)x;
+		error_modem_message = (char *)x;
 
+		pr_err("smem: SMEM_LGE_ERR_MESSAGE\n");
+
+		for (i=0; i < LGE_ERROR_MAX_ROW; i++) {
+			pr_err("%s\n", message);
+			message += LGE_ERROR_MAX_COLUMN;
+		}
+	}
+	//msm_pm_flush_console();
+#endif
+}
 
 static void handle_modem_crash(void)
 {
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+	printk(KERN_INFO">>>>>\n");
+	printk(KERN_INFO"Modem crash\n");
+	printk(KERN_INFO"<<<<<\n");
+#endif
 	pr_err("MODEM/AMSS has CRASHED\n");
 	smd_diag();
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+	/* flush console before reboot
+	 * from google's mahimahi kernel
+	 * 2010-05-04, cleaneye.kim@lge.com
+	 */
+	//msm_pm_flush_console();
+
+	atomic_notifier_call_chain(&panic_notifier_list, 0, "arm9 has crashed...\n");
+	smsm_reset_modem(SMSM_SYSTEM_REBOOT);
+#endif
 
 	/* hard reboot if possible FIXME
 	if (msm_reset_hook)
@@ -2581,6 +2626,10 @@ void smsm_reset_modem(unsigned mode)
 		mode = SMSM_RESET | SMSM_SYSTEM_DOWNLOAD;
 	} else if (mode == SMSM_MODEM_WAIT) {
 		mode = SMSM_RESET | SMSM_MODEM_WAIT;
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+	} else if (mode == SMSM_SYSTEM_REBOOT ) {
+		mode = SMSM_RESET | SMSM_SYSTEM_REBOOT ;
+#endif
 	} else { /* reset_mode is SMSM_RESET or default */
 		mode = SMSM_RESET;
 	}
@@ -2727,6 +2776,19 @@ static irqreturn_t smsm_irq_handler(int irq, void *data)
 			modem_queue_start_reset_notify();
 
 		} else if (modm & SMSM_RESET) {
+
+#ifdef CONFIG_LGE_HANDLE_MODEM_CRASH
+			printk(KERN_INFO">>>>>\n");
+			printk(KERN_INFO"Modem crash\n");
+			printk(KERN_INFO"<<<<<\n");
+
+			smd_diag();
+			atomic_notifier_call_chain(&panic_notifier_list, 0, "arm9 has crashed...\n");
+			smsm_reset_modem(SMSM_SYSTEM_REBOOT);
+
+			while (1);
+#endif
+
 			pr_err("\nSMSM: Modem SMSM state changed to SMSM_RESET.");
 			if (!disable_smsm_reset_handshake) {
 				apps |= SMSM_RESET;
