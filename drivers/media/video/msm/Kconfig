@@ -25,6 +25,21 @@ config MT9D113
 	  This sensor is the front camera on QT8660.
 	  This uses csi mipi interface.
 	  This sensor is used only on QT device.
+#LGE_CHANGES_S [junyeong.han@lge.com] 2010-01-14, [SWIFT] add configuration for isx005 sensor
+config ISX005
+	bool "Sensor isx005 (YUV 3M)"
+	depends on MSM_CAMERA
+	default y
+	---help---
+	  SONY 3M YUV Sensor with AutoFocus
+#LGE_CHANGES_E [junyeong.han@lge.com] 2010-01-14, [SWIFT]
+if ISX005
+config ISX005_ROTATION_180
+	bool "Display rotation of an angle of 180 degrees"
+	default n
+	---help---
+	  Rotate display to an angle of 180 degrees.
+endif
 config MT9D112
 	bool "Sensor mt9d112 (YUV 2M)"
 	depends on MSM_CAMERA && !ARCH_MSM8X60 && !ARCH_MSM8960 && !MSM_CAMERA_V4L2

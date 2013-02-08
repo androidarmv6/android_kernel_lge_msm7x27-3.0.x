@@ -48,7 +48,13 @@ struct msm_ptbl_entry {
 	__u32 flags;
 };
 
+#ifdef CONFIG_MACH_LGE
+//[LGE_UPDATE_S] DMS_SYSTEM hyunwook.choo 2011-06-09
+#define MSM_MAX_PARTITIONS 12
+//[LGE_UPDATE_E] DMS_SYSTEM hyunwook.choo
+#else /* original */
 #define MSM_MAX_PARTITIONS 18
+#endif
 
 static struct mtd_partition msm_nand_partitions[MSM_MAX_PARTITIONS];
 static char msm_nand_names[MSM_MAX_PARTITIONS * 16];
