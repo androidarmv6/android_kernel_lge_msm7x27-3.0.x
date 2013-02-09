@@ -194,7 +194,7 @@ static struct proccomm_regulator_info msm7627_pcom_vreg_info[] = {
 	PCOM_VREG_SMP(smps1,  4, NULL,  750000,  3050000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_SMP(smps2, 10, NULL,  750000,  3050000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_SMP(smps3,  2, NULL,  750000,  3050000, 0, -1, 0, 0, 0, 0),
-	PCOM_VREG_LDO(ldo00,  5, NULL,  2850000,  2850000, 0, -1, 0, 0, 0, 0),
+	PCOM_VREG_LDO(ldo00,  5, NULL,  3000000,  30000000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo01,  0, NULL,  2600000,  2600000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo02,  1, NULL,  2600000,  2600000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo03, 19, NULL,  2850000,  2850000, 0, -1, 0, 0, 0, 0),
@@ -209,7 +209,7 @@ static struct proccomm_regulator_info msm7627_pcom_vreg_info[] = {
 	PCOM_VREG_LDO(ldo12, 11, NULL,  1800000,  1800000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo13, 15, NULL,  1800000,  2850000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo14, 24, NULL,  2700000,  2700000, 0, -1, 0, 0, 0, 0),
-	PCOM_VREG_LDO(ldo15, 23, NULL,  2600000,  2600000, 0, -1, 0, 0, 0, 0),
+	PCOM_VREG_LDO(ldo15, 23, NULL,  2800000,  2800000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo16, 22, NULL,  2850000,  3000000, 0, -1, 0, 0, 0, 0),
 	PCOM_VREG_LDO(ldo17,  6, NULL,  1300000,  1300000, 0, -1, 0, 0, 0, 0),
 
