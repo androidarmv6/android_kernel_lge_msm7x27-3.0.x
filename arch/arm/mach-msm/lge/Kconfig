@@ -78,42 +78,42 @@ config LGE_DIAG_KEYPRESS
 	        default y		
 	        bool "LGE UTS KEYPRESS Support"		
 	        help		
-	                LGE UTS KEYPRESS Supports		
+                  LGE UTS KEYPRESS Supports		
 
-	config LGE_DIAG_UDM		
-	        depends on LGE_FACTORY		
-	        default n		
-	        bool "LGE UDM Support"		
-	        help		
-	                LGE UDM Supports		
+config LGE_DIAG_UDM		
+        depends on LGE_FACTORY		
+        default n		
+        bool "LGE UDM Support"		
+        help		
+          LGE UDM Supports		
 
-	config LGE_DIAG_SCREENSHOT		
-	        depends on LGE_FACTORY		
-	        default n		
-	        bool "LGE UTS SCREENSHOT Support"		
-	        help		
-	                LGE UTS SCREENSHOT Supports		
+config LGE_DIAG_SCREENSHOT		
+        depends on LGE_FACTORY		
+        default n		
+        bool "LGE UTS SCREENSHOT Support"		
+        help		
+          LGE UTS SCREENSHOT Supports		
 
-	config LGE_DLOAD_SRD		
-	        depends on LGE_FACTORY		
-	        default n		
-	        bool "LGE Dload SelfRecoveryDownload Support"		
-	        help		
-	                LGE Dload SelfRecoveryDownload Support		
+config LGE_DLOAD_SRD		
+        depends on LGE_FACTORY		
+        default n		
+        bool "LGE Dload SelfRecoveryDownload Support"		
+        help		
+          LGE Dload SelfRecoveryDownload Support		
 
-	config CONFIG_LGE_DIAG_ERI		
-	        depends on LGE_FACTORY		
-	        default n		
-	        bool "LGE CONFIG_LGE_DIAG_ERI Support"		
-	        help		
-	                LGE Dload CONFIG_LGE_DIAG_ERI Support		
+config CONFIG_LGE_DIAG_ERI		
+        depends on LGE_FACTORY		
+        default n		
+        bool "LGE CONFIG_LGE_DIAG_ERI Support"		
+        help		
+          LGE Dload CONFIG_LGE_DIAG_ERI Support		
 
-	config LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE		
-	        depends on LGE_FACTORY		
-	        default n		
-	        bool "CONFIG_LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE"		
-	        help		
-	                Disable Input Devices on Sleep Mode(250-42-0) for inspector to control key or touch
+config LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE		
+        depends on LGE_FACTORY		
+        default n		
+        bool "CONFIG_LGE_DIAG_DISABLE_INPUT_DEVICES_ON_SLEEP_MODE"		
+        help		
+          Disable Input Devices on Sleep Mode(250-42-0) for inspector to control key or touch
 
 config LGE_HANDLE_MODEM_CRASH
 	tristate "Support LGE Modem Crash Handler"
