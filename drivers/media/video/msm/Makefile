@@ -24,12 +24,15 @@ obj-$(CONFIG_MSM_CAMERA) += msm_axi_qos.o gemini/ mercury/ jpeg_10/
 obj-$(CONFIG_MSM_CAMERA_FLASH) += flash.o
 ifeq ($(CONFIG_MSM_CAMERA_V4L2),y)
   obj-$(CONFIG_ARCH_MSM8X60) += msm_vpe.o
-#  obj-$(CONFIG_ISX005) += isx005.o
   obj-$(CONFIG_ARCH_MSM7X30) += msm_vpe.o msm_axi_qos.o
 else
   obj-$(CONFIG_ARCH_MSM8X60) += msm_vpe1.o
-#  obj-$(CONFIG_ISX005) += isx005.o
   obj-$(CONFIG_ARCH_MSM7X30) += msm_vpe1.o
+endif
+ifeq ($(CONFIG_LGE_CAMERA_HIDDEN_MENU_TEST_PATCH), y)
+obj-$(CONFIG_ISX005) += isx005_tun.o
+else
+obj-$(CONFIG_ISX005) += isx005.o
 endif
 obj-$(CONFIG_ARCH_MSM8960) += msm_vpe.o
 obj-$(CONFIG_MT9T013) += mt9t013.o mt9t013_reg.o
