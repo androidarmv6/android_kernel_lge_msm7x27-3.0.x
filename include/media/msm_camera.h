@@ -868,11 +868,13 @@ struct msm_snapshot_pp_status {
 #define CAMERA_EFFECT_REDDISH	13
 #define CAMERA_EFFECT_GREENISH	14
 
+#if !defined(CONFIG_ISX005)
 /* QRD */
 #define CAMERA_ANTIBANDING_OFF		0
 #define CAMERA_ANTIBANDING_50HZ		2
 #define CAMERA_ANTIBANDING_60HZ		1
 #define CAMERA_ANTIBANDING_AUTO		3
+#endif
 
 #define CAMERA_CONTRAST_LV0			0
 #define CAMERA_CONTRAST_LV1			1
@@ -929,6 +931,7 @@ struct msm_snapshot_pp_status {
 /* QRD */
 #define CFG_SET_EXPOSURE_COMPENSATION 35
 
+#if !defined(CONFIG_ISX005)
 #define  CAMERA_WB_AUTO               1 /* This list must match aeecamera.h */
 #define  CAMERA_WB_CUSTOM             2
 #define  CAMERA_WB_INCANDESCENT       3
@@ -937,6 +940,7 @@ struct msm_snapshot_pp_status {
 #define  CAMERA_WB_CLOUDY_DAYLIGHT    6
 #define  CAMERA_WB_TWILIGHT           7
 #define  CAMERA_WB_SHADE              8
+#endif
 
 #define CAMERA_EXPOSURE_COMPENSATION_LV0			12
 #define CAMERA_EXPOSURE_COMPENSATION_LV1			6
