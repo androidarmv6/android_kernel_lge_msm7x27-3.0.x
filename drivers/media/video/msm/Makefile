@@ -23,12 +23,15 @@ endif
 obj-$(CONFIG_ARCH_QSD8X50) += msm_vfe8x.o msm_vfe8x_proc.o msm_io8x.o
 ifeq ($(CONFIG_MSM_CAMERA_V4L2),y)
   obj-$(CONFIG_ARCH_MSM8X60) += msm_io_vfe31_v4l2.o msm_vfe31_v4l2.o msm_vpe.o
-#  obj-$(CONFIG_ISX005) += isx005.o
   obj-$(CONFIG_ARCH_MSM7X30) += msm_io_vfe31_v4l2.o msm_vfe31_v4l2.o msm_vpe.o msm_axi_qos.o
 else
   obj-$(CONFIG_ARCH_MSM8X60) += msm_vfe31.o msm_io_8x60.o msm_vpe1.o
-#  obj-$(CONFIG_ISX005) += isx005.o
   obj-$(CONFIG_ARCH_MSM7X30) += msm_vfe31.o msm_io_vfe31.o msm_vpe1.o
+endif
+ifeq ($(CONFIG_LGE_CAMERA_HIDDEN_MENU_TEST_PATCH), y)
+obj-$(CONFIG_ISX005) += isx005_tun.o
+else
+obj-$(CONFIG_ISX005) += isx005.o
 endif
 obj-$(CONFIG_ARCH_MSM8960) += msm_io_8960.o msm_vfe32.o msm_vpe.o
 obj-$(CONFIG_MT9T013) += mt9t013.o mt9t013_reg.o
