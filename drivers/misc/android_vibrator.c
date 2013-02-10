@@ -134,9 +134,9 @@ static int vibrator_get_time(struct timed_output_dev *dev)
 {
 	struct timed_vibrator_data *data = container_of(dev, struct timed_vibrator_data, dev);
 
-	if (hrtimer_active(&data->timer)) {
-		ktime_t r = hrtimer_get_remaining(&data->timer);
-		return r.tv.sec * 1000 + r.tv.nsec / 1000000;
+	if (hrtimer_active(&vib->vib_timer)) {
+		ktime_t r = hrtimer_get_remaining(&vib->vib_timer);
+		return (int)ktime_to_us(r);
 	} else
 		return 0;
 }
