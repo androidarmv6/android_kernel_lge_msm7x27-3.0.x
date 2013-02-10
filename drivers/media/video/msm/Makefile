@@ -33,6 +33,7 @@ obj-$(CONFIG_ISX005) += isx005_tun.o
 else
 obj-$(CONFIG_ISX005) += isx005.o
 endif
+obj-$(CONFIG_ISX006) += isx006.o isx006_reg.o
 obj-$(CONFIG_ARCH_MSM8960) += msm_io_8960.o msm_vfe32.o msm_vpe.o
 obj-$(CONFIG_MT9T013) += mt9t013.o mt9t013_reg.o
 obj-$(CONFIG_SN12M0PZ) += sn12m0pz.o sn12m0pz_reg.o
