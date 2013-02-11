@@ -580,7 +580,8 @@ static struct notifier_block smsm_pm_nb = {
 #define LGE_ERR_MESSAGE_BUF_LEN   (LGE_ERROR_MAX_ROW*LGE_ERROR_MAX_COLUMN +8)
 
 char *error_modem_message = NULL;
-void msm_pm_flush_console(void);
+void msm_pm_flush_console(void){
+};
 #endif
 
 void smd_diag(void)
@@ -619,7 +620,7 @@ void smd_diag(void)
 			message += LGE_ERROR_MAX_COLUMN;
 		}
 	}
-	//msm_pm_flush_console();
+	msm_pm_flush_console();
 #endif
 }
 
@@ -637,7 +638,7 @@ static void handle_modem_crash(void)
 	 * from google's mahimahi kernel
 	 * 2010-05-04, cleaneye.kim@lge.com
 	 */
-	//msm_pm_flush_console();
+	msm_pm_flush_console();
 
 	atomic_notifier_call_chain(&panic_notifier_list, 0, "arm9 has crashed...\n");
 	smsm_reset_modem(SMSM_SYSTEM_REBOOT);
