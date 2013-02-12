@@ -1,6 +1,5 @@
 config BCM4325
 	tristate "Broadcom BCM4325 wireless support"
-#	depends on WLAN_80211
 	select WIRELESS_EXT
         select WEXT_PRIV
 	---help---
