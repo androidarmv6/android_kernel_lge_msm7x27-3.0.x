@@ -659,8 +659,8 @@ static int mddi_novatek_lcd_init(void)
 	struct msm_panel_info *pinfo;
 
 #ifdef CONFIG_FB_MSM_MDDI_AUTO_DETECT
-
-//	u32 id;
+	extern int lge_lcd_panel;
+	//u32 id;
 
 	ret = msm_fb_detect_client("mddi_novatek_hvga");
 	if (ret == -ENODEV)
@@ -678,15 +678,16 @@ static int mddi_novatek_lcd_init(void)
 			if ((id >> 16) != MDDI_NOVATEK_HVGA_PANEL_MFR_NAME) {
 				return 0;
 			} else
-			#endif//BOGUS
+			#endif //BOGUS
 			{
+				lge_lcd_panel = 1;  //novatek
 				printk(KERN_INFO "NOVATEK panel detected\n");
 			}
 		} else {
 			return 0;
 		}
 	}
-#endif/*CONFIG_FB_MSM_MDDI_AUTO_DETECT*/
+#endif /*CONFIG_FB_MSM_MDDI_AUTO_DETECT*/
 
 	ret = platform_driver_register(&this_driver);
 	if (!ret) {
@@ -747,11 +748,7 @@ static void mddi_novatek_lcd_panel_poweron(void)
 	 * 2010-04-21, minjong.gong@lge.com
 	 */
 	//struct msm_panel_common_pdata *pdata = mddi_novatek_pdata;
-#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 	struct msm_panel_novatek_pdata *pdata = mddi_novatek_pdata;
-#else
-	struct msm_panel_common_pdata *pdata = mddi_novatek_pdata;
-#endif
 
 	EPRINTK("%s: started.\n", __func__);
 
@@ -776,11 +773,7 @@ static void mddi_novatek_lcd_panel_poweron(void)
 
 static void mddi_novatek_lcd_panel_poweroff(void)
 {
-#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 	struct msm_panel_novatek_pdata *pdata = mddi_novatek_pdata;
-#else
-	struct msm_panel_common_pdata *pdata = mddi_novatek_pdata;
-#endif
 
 	EPRINTK("%s: started.\n", __func__);
 
