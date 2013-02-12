@@ -40,6 +40,7 @@ static char *msm_fb_vreg[] = {
 
 static struct msm_panel_common_pdata mdp_pdata = {
 	.gpio = 97,
+	.mdp_rev = MDP_REV_30,
 };
 
 static void __init msm_fb_add_devices(void)

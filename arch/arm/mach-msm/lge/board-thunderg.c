@@ -79,9 +79,7 @@
  * but that variable is declared in weak attribute
  * so board specific configuration can be redefined like "over riding" in OOP
  */
-extern struct msm_pm_platform_data msm7x25_pm_data[MSM_PM_SLEEP_MODE_NR];
 extern struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR];
-
 
 static struct platform_device *devices[] __initdata = {
 	&msm_device_smd,
