@@ -594,6 +594,7 @@ void __init msm_msm7x2x_allocate_memory_regions(void);
 void __init msm_add_fb_device(void);
 void __init msm_add_pmem_devices(void);
 void __init msm_add_kgsl_device(void);
+void __init msm_add_footswitch_devices(void);
 void __init msm_add_usb_devices(void);
 void __init msm_device_i2c_init(void);
 

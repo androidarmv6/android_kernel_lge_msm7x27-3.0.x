@@ -964,8 +964,6 @@ void __init lge_add_tsif_devices(void)
 {
 	msm_device_tsif.dev.platform_data = &tsif_platform_data;
 	platform_device_register(&msm_device_tsif);
-	platform_add_devices(msm_footswitch_devices,
-		msm_num_footswitch_devices);
 }
 #endif /* defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE) */
 

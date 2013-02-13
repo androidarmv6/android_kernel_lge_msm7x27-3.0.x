@@ -917,6 +917,12 @@ struct platform_device *msm_footswitch_devices[] = {
 };
 unsigned msm_num_footswitch_devices = ARRAY_SIZE(msm_footswitch_devices);
 
+void __init msm_add_footswitch_devices(void)
+{
+	platform_add_devices(msm_footswitch_devices, msm_num_footswitch_devices);
+}
+
+
 static struct resource gpio_resources[] = {
 	{
 		.start  = INT_GPIO_GROUP1,

@@ -119,12 +119,6 @@ struct msm_pm_boot_platform_data msm_pm_boot_pdata __initdata = {
 	.p_addr = 0,
 };
 
-/* decrease FB pmem size because thunderg uses hvga
- * qualcomm's original value depends on wvga resolution
- * 2010-04-18, cleaneye.kim@lge.com
- */
-unsigned pmem_fb_size = 	0x96000;
-unsigned pmem_adsp_size =	0xAE4000;
 
 static void __init msm7x2x_init(void)
 {
@@ -150,6 +144,8 @@ static void __init msm7x2x_init(void)
 	msm_add_kgsl_device();
 #endif
 	msm_add_usb_devices();
+
+	msm_add_footswitch_devices();
 
 #ifdef CONFIG_MSM_CAMERA
 	config_camera_off_gpios(); /* might not be necessary */
