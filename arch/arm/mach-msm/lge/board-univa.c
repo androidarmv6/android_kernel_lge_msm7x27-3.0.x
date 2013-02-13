@@ -98,6 +98,9 @@
 extern struct msm_pm_platform_data msm7x27_pm_data[MSM_PM_SLEEP_MODE_NR];
 
 static struct platform_device *devices[] __initdata = {
+	&asoc_msm_pcm,
+	&asoc_msm_dai0,
+	&asoc_msm_dai1,
 	&msm_device_smd,
 	&msm_device_dmov,
 	&msm_device_nand,

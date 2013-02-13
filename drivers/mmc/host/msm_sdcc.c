@@ -4316,14 +4316,14 @@ msmsdcc_check_status(unsigned long data)
 #ifdef CONFIG_LGE_BCM432X_PATCH
 #ifdef CONFIG_BCM4325_GPIO_WL_RESET
 			else if (host->plat->status_irq == MSM_GPIO_TO_INT(CONFIG_BCM4325_GPIO_WL_RESET)) {
-#elif CONFIG_BCM4329_GPIO_WL_RESET
+#elif defined CONFIG_BCM4329_GPIO_WL_RESET
 			else if (host->plat->status_irq == MSM_GPIO_TO_INT(CONFIG_BCM4329_GPIO_WL_RESET)) {
 #endif
 				printk(KERN_ERR "[host->plat->status_irq:%d:MSM_GPIO_TO_INIT:%d:status:%d:%s:%d]\n",
 					host->plat->status_irq,
 #ifdef CONFIG_BCM4325_GPIO_WL_RESET
 					MSM_GPIO_TO_INT(CONFIG_BCM4325_GPIO_WL_RESET),
-#elif CONFIG_BCM4329_GPIO_WL_RESET
+#elif defined CONFIG_BCM4329_GPIO_WL_RESET
 					MSM_GPIO_TO_INT(CONFIG_BCM4329_GPIO_WL_RESET),
 #endif
 					status, __func__, __LINE__);
