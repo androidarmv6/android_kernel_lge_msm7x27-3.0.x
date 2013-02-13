@@ -137,6 +137,7 @@ static void __init msm7x2x_init(void)
 
 	acpuclk_init(&acpuclk_7x27_soc_data);
 
+	msm_add_footswitch_devices();
 	msm_add_pmem_devices();
 	msm_add_fb_device();
 
@@ -150,8 +151,6 @@ static void __init msm7x2x_init(void)
 	msm_add_kgsl_device();
 #endif
 	msm_add_usb_devices();
-
-	msm_add_footswitch_devices();
 
 #ifdef CONFIG_MSM_CAMERA
 	config_camera_off_gpios(); /* might not be necessary */
