@@ -63,6 +63,5 @@ void msm_fsusb_rpc_deinit(void);
 int usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum);
 //static inline int
 //usb_diag_update_pid_and_serial_num(uint32_t pid, const char *snum) { return 0; }
->>>>>>> 4d4db58... Cleanup and prepare for boot
 #endif
 #endif
