@@ -364,8 +364,7 @@ static inline void notify_wcnss_smd(void)
 #define LGE_ERR_MESSAGE_BUF_LEN   (LGE_ERROR_MAX_ROW*LGE_ERROR_MAX_COLUMN +8)
 
 char *error_modem_message = NULL;
-void msm_pm_flush_console(void){
-};
+void msm_pm_flush_console(void);
 #endif
 
 void smd_diag(void)
