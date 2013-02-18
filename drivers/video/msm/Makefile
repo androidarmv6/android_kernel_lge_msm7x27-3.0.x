@@ -1,6 +1,7 @@
 ifeq ($(CONFIG_FB_MSM_MDSS),y)
 obj-y += mdss/
 else
+
 obj-y := msm_fb.o
 
 obj-$(CONFIG_FB_MSM_LOGO) += logo.o
@@ -117,6 +118,7 @@ obj-y += mddi_sharp.o
 obj-y += mddi_orise.o
 obj-y += mddi_quickvx.o
 obj-y += mddi_hitachi_hvga.o
+obj-y += mddi_hitachi_hvga_gelato.o
 obj-y += mddi_novatek_hvga.o
 else
 obj-$(CONFIG_FB_MSM_MDDI_PRISM_WVGA) += mddi_prism.o
@@ -128,6 +130,7 @@ obj-$(CONFIG_FB_MSM_MDDI_SHARP_QVGA_128x128) += mddi_sharp.o
 obj-$(CONFIG_FB_MSM_MDDI_ORISE) += mddi_orise.o
 obj-$(CONFIG_FB_MSM_MDDI_QUICKVX) += mddi_quickvx.o
 obj-$(CONFIG_FB_MSM_MDDI_HITACHI_HVGA) += mddi_hitachi_hvga.o
+obj-$(CONFIG_FB_MSM_MDDI_HITACHI_HVGA_GELATO) += mddi_hitachi_hvga_gelato.o
 obj-$(CONFIG_FB_MSM_MDDI_NOVATEK_HVGA) += mddi_novatek_hvga.o
 endif
 
