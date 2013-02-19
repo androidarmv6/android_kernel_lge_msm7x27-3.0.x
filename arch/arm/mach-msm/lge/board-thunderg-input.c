@@ -254,25 +254,32 @@ static struct platform_device ts_i2c_device = {
 
 static int ts_set_vreg(unsigned char onoff)
 {
-	struct regulator *vreg_touch = regulator_get(NULL, "synt");
+	struct vreg *vreg_touch;
+//	struct regulator *vreg_touch = regulator_get(NULL, "synt");
 	int rc;
 
 	printk("[Touch] %s() onoff:%d\n",__FUNCTION__, onoff);
 
+	vreg_touch = vreg_get(0, "synt");
+
 	if(IS_ERR(vreg_touch)) {
-		printk("[Touch] regulator_get fail : touch\n");
+		printk("[Touch] vreg_get fail : touch\n");
+//		printk("[Touch] regulator_get fail : touch\n");
 		return -1;
 	}
 
 	if (onoff) {
-		rc = regulator_set_voltage(vreg_touch, 3050000, 3050000);
+		rc = vreg_set_level(vreg_touch, 3050);
+//		rc = regulator_set_voltage(vreg_touch, 3050000, 3050000);
 		if (rc != 0) {
 			printk("[Touch] vreg_set_level failed\n");
 			return -1;
 		}
-		regulator_enable(vreg_touch);
+		vreg_enable(vreg_touch);
+//		regulator_enable(vreg_touch);
 	} else
-		regulator_disable(vreg_touch);
+		vreg_disable(vreg_touch);
+//		regulator_disable(vreg_touch);
 
 	return 0;
 }
@@ -331,12 +338,15 @@ static void kr_exit(void)
 static int accel_power_on(void)
 {
 	int ret = 0;
-	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
+	struct vreg *gp3_vreg = vreg_get(0, "gp3");
+//	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
 
 	printk("[Accelerometer] %s() : Power On\n",__FUNCTION__);
 
-	regulator_set_voltage(gp3_vreg, 3000000, 3000000);
-	regulator_enable(gp3_vreg);
+	vreg_set_level(gp3_vreg, 3000);
+	vreg_enable(gp3_vreg);
+//	regulator_set_voltage(gp3_vreg, 3000000, 3000000);
+//	regulator_enable(gp3_vreg);
 
 	return ret;
 }
@@ -344,11 +354,13 @@ static int accel_power_on(void)
 static int accel_power_off(void)
 {
 	int ret = 0;
-	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
+	struct vreg *gp3_vreg = vreg_get(0, "gp3");
+//	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
 
 	printk("[Accelerometer] %s() : Power Off\n",__FUNCTION__);
 
-	regulator_disable(gp3_vreg);
+	vreg_disable(gp3_vreg);
+//	regulator_disable(gp3_vreg);
 
 	return ret;
 }
@@ -423,21 +435,30 @@ static void __init thunderg_init_i2c_acceleration(int bus_num)
 static int ecom_power_set(unsigned char onoff)
 {
 	int ret = 0;
-	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
-	struct regulator *gp6_vreg = regulator_get(NULL, "gp6");
+	struct vreg *gp3_vreg = vreg_get(0, "gp3");
+	struct vreg *gp6_vreg = vreg_get(0, "gp6");
+//	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
+//	struct regulator *gp6_vreg = regulator_get(NULL, "gp6");
 
 	printk("[Ecompass] %s() : Power %s\n",__FUNCTION__, onoff ? "On" : "Off");
 
 	if (onoff) {
-		regulator_set_voltage(gp3_vreg, 3000000, 3000000);
-		regulator_enable(gp3_vreg);
+		vreg_set_level(gp3_vreg, 3000);
+		vreg_enable(gp3_vreg);
+
+//		regulator_set_voltage(gp3_vreg, 3000000, 3000000);
+//		regulator_enable(gp3_vreg);
 		/* proximity power on , when we turn off I2C line be set to low caues sensor H/W characteristic */
-		regulator_set_voltage(gp6_vreg, 2800000, 2800000);
-		regulator_enable(gp6_vreg);
+		vreg_set_level(gp6_vreg, 2800);
+		vreg_enable(gp6_vreg);
+//		regulator_set_voltage(gp6_vreg, 2800000, 2800000);
+//		regulator_enable(gp6_vreg);
 	} else {
-		regulator_disable(gp3_vreg);
+		vreg_disable(gp3_vreg);
+//		regulator_disable(gp3_vreg);
 		/* proximity power off */
-		regulator_disable(gp6_vreg);
+		vreg_disable(gp6_vreg);
+//		regulator_disable(gp6_vreg);
 	}
 
 	return ret;
@@ -452,15 +473,19 @@ static struct ecom_platform_data ecom_pdata = {
 static int prox_power_set(unsigned char onoff)
 {
 	int ret = 0;
-	struct regulator *gp6_vreg = regulator_get(NULL, "gp6");
+	struct vreg *gp6_vreg = vreg_get(0, "gp6");
+//	struct regulator *gp6_vreg = regulator_get(NULL, "gp6");
 
 	printk("[Proximity] %s() : Power %s\n",__FUNCTION__, onoff ? "On" : "Off");
 
 	if (onoff) {
-		regulator_set_voltage(gp6_vreg, 2800000, 2800000);
-		regulator_enable(gp6_vreg);
+		vreg_set_level(gp6_vreg, 2800);
+		vreg_enable(gp6_vreg);
+//		regulator_set_voltage(gp6_vreg, 2800000, 2800000);
+//		regulator_enable(gp6_vreg);
 	} else {
-		regulator_disable(gp6_vreg);
+		vreg_disable(gp6_vreg);
+//		regulator_disable(gp6_vreg);
 	}
 
 	return ret;
