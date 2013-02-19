@@ -136,9 +136,12 @@ int camera_power_on (void)
 			goto power_on_fail;
 		}
 	} else {	/* it is for rev.c and default */
-		struct regulator *vreg_mmc = regulator_get(NULL, "mmc");
-		regulator_set_voltage(vreg_mmc, 2800000, 2800000);
-		regulator_enable(vreg_mmc);
+		struct vreg *vreg_mmc = vreg_get(0, "mmc");
+		vreg_set_level(vreg_mmc, 2800);
+		vreg_enable(vreg_mmc);
+//		struct regulator *vreg_mmc = regulator_get(NULL, "mmc");
+//		regulator_set_voltage(vreg_mmc, 2800000, 2800000);
+//		regulator_enable(vreg_mmc);
 	}
 
   /* DVDD power 1.2V */
@@ -236,9 +239,12 @@ int camera_power_off (void)
 			goto power_off_fail;
 		}
 	} else {	/* it is for rev.c and default */
-		struct regulator *vreg_mmc = regulator_get(NULL, "mmc");
-		regulator_set_voltage(vreg_mmc, 0, 0);
-		regulator_disable(vreg_mmc);
+		struct vreg *vreg_mmc = vreg_get(0, "mmc");
+		vreg_set_level(vreg_mmc, 0);
+		vreg_disable(vreg_mmc);
+//		struct regulator *vreg_mmc = regulator_get(NULL, "mmc");
+//		regulator_set_voltage(vreg_mmc, 0, 0);
+//		regulator_disable(vreg_mmc);
 	}
 
 
