@@ -252,36 +252,46 @@ static struct platform_device ts_i2c_device = {
 	.dev.platform_data = &ts_i2c_pdata,
 };
 
+static int ts_power_save_on;
 static int ts_set_vreg(unsigned char onoff)
 {
-	struct vreg *vreg_touch;
-//	struct regulator *vreg_touch = regulator_get(NULL, "synt");
-	int rc;
+	int rc = 0;
+	static struct regulator *vreg_touch;
 
-	printk("[Touch] %s() onoff:%d\n",__FUNCTION__, onoff);
+	if (!ts_power_save_on) {
+		vreg_touch = regulator_get(0, "synt");
+		if (IS_ERR_OR_NULL(vreg_touch)) {
+			pr_err("could not get vreg_touch, rc = %ld\n",
+				PTR_ERR(vreg_touch));
+			return -ENODEV;
+		}
 
-	vreg_touch = vreg_get(0, "synt");
+		rc = regulator_set_voltage(vreg_touch, 3050000, 3050000);
+		if (rc) {
+			pr_err("set_voltage vreg_touch failed, rc=%d\n", rc);
+			regulator_put(vreg_touch);
+			return -EINVAL;
+		}
 
-	if(IS_ERR(vreg_touch)) {
-		printk("[Touch] vreg_get fail : touch\n");
-//		printk("[Touch] regulator_get fail : touch\n");
-		return -1;
+		ts_power_save_on = true;
 	}
 
-	if (onoff) {
-		rc = vreg_set_level(vreg_touch, 3050);
-//		rc = regulator_set_voltage(vreg_touch, 3050000, 3050000);
-		if (rc != 0) {
-			printk("[Touch] vreg_set_level failed\n");
-			return -1;
-		}
-		vreg_enable(vreg_touch);
-//		regulator_enable(vreg_touch);
-	} else
-		vreg_disable(vreg_touch);
-//		regulator_disable(vreg_touch);
+	printk("[Touch] %s() onoff:%d\n", __FUNCTION__, onoff);
 
-	return 0;
+	if (onoff) {
+		rc = regulator_enable(vreg_touch);
+		if (rc) {
+			pr_err("enable vreg_touch failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	} else {
+		rc = regulator_disable(vreg_touch);
+		if (rc) {
+			pr_err("disable vreg_touch failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	}
+	return rc;
 }
 
 static struct touch_platform_data ts_pdata = {
