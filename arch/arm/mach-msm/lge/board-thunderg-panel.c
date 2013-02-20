@@ -23,44 +23,89 @@
 #include "board-thunderg.h"
 #include "../board-msm7627-regulator.h"
 
-#define MSM_FB_LCDC_VREG_OP(name, op, level)			\
-do { \
-	vreg = vreg_get(0, name); \
-	vreg_set_level(vreg, level); \
-	if (vreg_##op(vreg)) \
-		printk(KERN_ERR "%s: %s vreg operation failed \n", \
-		(vreg_##op == vreg_enable) ? "vreg_enable" \
-			: "vreg_disable", name); \
-} while (0)
+//#define MSM_FB_LCDC_VREG_OP(name, op, level)			\
+//do { \
+//	vreg = vreg_get(0, name); \
+//	vreg_set_level(vreg, level); \
+//	if (vreg_##op(vreg)) \
+//		printk(KERN_ERR "%s: %s vreg operation failed \n", \
+//		(vreg_##op == vreg_enable) ? "vreg_enable" \
+//			: "vreg_disable", name); \
+//} while (0)
 
-static char *msm_fb_vreg[] = {
-	"gp1",
-	"gp2",
-};
+//static char *msm_fb_vreg[] = {
+//	"gp1",
+//	"gp2",
+//};
 
 static int mddi_power_save_on;
 static int msm_fb_mddi_power_save(int on)
 {
-	struct vreg *vreg;
-//	struct regulator *vreg;
-	int flag_on = !!on;
+	int rc = 0;
+	static struct regulator *vreg_gp1;
+	static struct regulator *vreg_gp2;
 
-	if (mddi_power_save_on == flag_on)
-		return 0;
+	if (!mddi_power_save_on) {
+		vreg_gp1 = regulator_get(0, "gp1");
+		if (IS_ERR_OR_NULL(vreg_gp1)) {
+			pr_err("could not get vreg_gp1, rc = %ld\n",
+				PTR_ERR(vreg_gp1));
+			return -ENODEV;
+		}
 
-	mddi_power_save_on = flag_on;
+		vreg_gp2 = regulator_get(0, "gp2");
+		if (IS_ERR_OR_NULL(vreg_gp2)) {
+			pr_err("could not get vreg_gp2, rc = %ld\n",
+				PTR_ERR(vreg_gp2));
+			regulator_put(vreg_gp1);
+			return -ENODEV;
+		}
 
-	if (on) {
-		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[0], enable, 1800);
-		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[1], enable, 2800);
-//		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[0], enable, 1800000);
-//		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[1], enable, 2800000);
-	} else{
-		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[0], disable, 0);
-		MSM_FB_LCDC_VREG_OP(msm_fb_vreg[1], disable, 0);
+		rc = regulator_set_voltage(vreg_gp1, 1800000, 1800000);
+		if (rc) {
+			pr_err("set_voltage vreg_gp1 failed, rc=%d\n", rc);
+			regulator_put(vreg_gp1);
+			regulator_put(vreg_gp2);
+			return -EINVAL;
+		}
+
+		rc = regulator_set_voltage(vreg_gp2, 2800000, 2800000);
+		if (rc) {
+			pr_err("set_voltage vreg_gp2 failed, rc=%d\n", rc);
+			regulator_put(vreg_gp1);
+			regulator_put(vreg_gp2);
+			return -EINVAL;
+		}
+
+		mddi_power_save_on = true;
 	}
 
-	return 0;
+	if (on) {
+		rc = regulator_enable(vreg_gp1);
+		if (rc) {
+			pr_err("enable vreg_gp1 failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+		rc = regulator_enable(vreg_gp2);
+		if (rc) {
+			pr_err("enable vreg_gp2 failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	}
+	else {
+		rc = regulator_disable(vreg_gp1);
+		if (rc) {
+			pr_err("disable vreg_gp1 failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+		rc = regulator_disable(vreg_gp2);
+		if (rc) {
+			pr_err("disable vreg_gp2 failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	}
+
+	return rc;
 }
 
 static struct mddi_platform_data mddi_pdata = {
