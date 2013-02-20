@@ -252,36 +252,46 @@ static struct platform_device ts_i2c_device = {
 	.dev.platform_data = &ts_i2c_pdata,
 };
 
+static int ts_power_save_on;
 static int ts_set_vreg(unsigned char onoff)
 {
-	struct vreg *vreg_touch;
-//	struct regulator *vreg_touch = regulator_get(NULL, "synt");
-	int rc;
+	int rc = 0;
+	static struct regulator *vreg_touch;
 
-	printk("[Touch] %s() onoff:%d\n",__FUNCTION__, onoff);
+	if (!ts_power_save_on) {
+		vreg_touch = regulator_get(0, "synt");
+		if (IS_ERR_OR_NULL(vreg_touch)) {
+			pr_err("could not get vreg_touch, rc = %ld\n",
+				PTR_ERR(vreg_touch));
+			return -ENODEV;
+		}
 
-	vreg_touch = vreg_get(0, "synt");
+		rc = regulator_set_voltage(vreg_touch, 3050000, 3050000);
+		if (rc) {
+			pr_err("set_voltage vreg_touch failed, rc=%d\n", rc);
+			regulator_put(vreg_touch);
+			return -EINVAL;
+		}
 
-	if(IS_ERR(vreg_touch)) {
-		printk("[Touch] vreg_get fail : touch\n");
-//		printk("[Touch] regulator_get fail : touch\n");
-		return -1;
+		ts_power_save_on = true;
 	}
 
-	if (onoff) {
-		rc = vreg_set_level(vreg_touch, 3050);
-//		rc = regulator_set_voltage(vreg_touch, 3050000, 3050000);
-		if (rc != 0) {
-			printk("[Touch] vreg_set_level failed\n");
-			return -1;
-		}
-		vreg_enable(vreg_touch);
-//		regulator_enable(vreg_touch);
-	} else
-		vreg_disable(vreg_touch);
-//		regulator_disable(vreg_touch);
+	printk("[Touch] %s() onoff:%d\n", __FUNCTION__, onoff);
 
-	return 0;
+	if (onoff) {
+		rc = regulator_enable(vreg_touch);
+		if (rc) {
+			pr_err("enable vreg_touch failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	} else {
+		rc = regulator_disable(vreg_touch);
+		if (rc) {
+			pr_err("disable vreg_touch failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	}
+	return rc;
 }
 
 static struct touch_platform_data ts_pdata = {
@@ -335,34 +345,57 @@ static void kr_exit(void)
 {
 }
 
+static int accel_power_save_on;
+static int accel_power_on_off(int onoff)
+{
+	int rc = 0;
+	static struct regulator *gp3_vreg;
+
+	if (!accel_power_save_on) {
+		gp3_vreg = regulator_get(0, "gp3");
+		if (IS_ERR_OR_NULL(gp3_vreg)) {
+			pr_err("could not get gp3_vreg, rc = %ld\n",
+				PTR_ERR(gp3_vreg));
+			return -ENODEV;
+		}
+
+		rc = regulator_set_voltage(gp3_vreg, 3000000, 3000000);
+		if (rc) {
+			pr_err("set_voltage gp3_vreg failed, rc=%d\n", rc);
+			regulator_put(gp3_vreg);
+			return -EINVAL;
+		}
+
+		accel_power_save_on = true;
+	}
+
+	printk("[Accelerometer] %s() onoff:%d\n", __FUNCTION__, onoff);
+
+	if (onoff) {
+		rc = regulator_enable(gp3_vreg);
+		if (rc) {
+			pr_err("enable gp3_vreg failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	} else {
+		rc = regulator_disable(gp3_vreg);
+		if (rc) {
+			pr_err("disable gp3_vreg failed, rc=%d\n", rc);
+			return -ENODEV;
+		}
+	}
+
+	return rc;
+}
+
 static int accel_power_on(void)
 {
-	int ret = 0;
-	struct vreg *gp3_vreg = vreg_get(0, "gp3");
-//	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
-
-	printk("[Accelerometer] %s() : Power On\n",__FUNCTION__);
-
-	vreg_set_level(gp3_vreg, 3000);
-	vreg_enable(gp3_vreg);
-//	regulator_set_voltage(gp3_vreg, 3000000, 3000000);
-//	regulator_enable(gp3_vreg);
-
-	return ret;
+	return accel_power_on_off(1);
 }
 
 static int accel_power_off(void)
 {
-	int ret = 0;
-	struct vreg *gp3_vreg = vreg_get(0, "gp3");
-//	struct regulator *gp3_vreg = regulator_get(NULL, "gp3");
-
-	printk("[Accelerometer] %s() : Power Off\n",__FUNCTION__);
-
-	vreg_disable(gp3_vreg);
-//	regulator_disable(gp3_vreg);
-
-	return ret;
+	return accel_power_on_off(0);
 }
 
 struct kr3dh_platform_data kr3dh_data = {
