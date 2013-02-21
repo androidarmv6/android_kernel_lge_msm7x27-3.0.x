@@ -130,6 +130,24 @@ static int mddi_hitachi_pmic_backlight(int level)
 	return 0;
 }
 
+#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
+int lge_lcd_panel = -1;
+static struct msm_panel_novatek_pdata mddi_novatek_panel_data = {
+	.gpio = 102,				/* lcd reset_n */
+	.pmic_backlight = mddi_hitachi_pmic_backlight,
+	.initialized = 1,
+};
+
+static struct platform_device mddi_novatek_panel_device = {
+	.name   = "mddi_novatek_hvga",
+	.id     = 0,
+	.dev    = {
+		.platform_data = &mddi_novatek_panel_data,
+	}
+};
+
+#endif
+
 #if 1//def CONFIG_MACH_MSM7X27_ALOHAG
 /* LGE_CHANGE
  * Define new structure named 'msm_panel_hitachi_pdata' to use LCD initialization Flag (.initialized).
@@ -233,6 +251,20 @@ void __init thunderg_init_i2c_backlight(int bus_num)
 /* common functions */
 void __init lge_add_lcd_devices(void)
 {
+#ifdef CONFIG_FB_MSM_MDDI_NOVATEK_HVGA
+	gpio_tlmm_config(GPIO_CFG(101, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
+	if(gpio_get_value(101))
+	{
+		lge_lcd_panel = 1;
+	}
+	else
+	{
+		lge_lcd_panel = 0;
+	}
+	printk(KERN_ERR "%s: lge_lcd_panel : %d \n", __func__, lge_lcd_panel);
+	platform_device_register(&mddi_novatek_panel_device);
+#endif
+
 	platform_device_register(&mddi_hitachi_panel_device);
 
 	msm_fb_add_devices();
