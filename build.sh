@@ -6,7 +6,7 @@
 
 echo "this is an open source script, feel free to use and share it"
 
-daytime=$(date +%d"-"%m"-"%Y"_"%H"-"%M)
+daytime=$(date +%Y"-"%m"-"%d"_"%H"-"%M)
 
 location=.
 vendor=lge
