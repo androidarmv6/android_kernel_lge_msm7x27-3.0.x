@@ -183,16 +183,23 @@ struct msm_camera_sensor_strobe_flash_data {
 	int state;
 };
 
-enum msm_camera_type {
-	BACK_CAMERA_2D,
-	FRONT_CAMERA_2D,
-	BACK_CAMERA_3D,
-	BACK_CAMERA_INT_3D,
-};
 
 enum msm_sensor_type {
 	BAYER_SENSOR,
 	YUV_SENSOR,
+};
+
+enum camera_vreg_type {
+	REG_LDO,
+	REG_VS,
+};
+
+struct camera_vreg_t {
+	char *reg_name;
+	enum camera_vreg_type type;
+	int min_voltage;
+	int max_voltage;
+	int op_mode;
 };
 
 struct msm_gpio_set_tbl {
@@ -298,7 +305,6 @@ struct msm_camera_sensor_info {
 	int csi_if;
 	struct msm_camera_sensor_strobe_flash_data *strobe_flash_data;
 	char *eeprom_data;
-	enum msm_camera_type camera_type;
 	enum msm_sensor_type sensor_type;
 	struct msm_actuator_info *actuator_info;
 	int pmic_gpio_enable;
