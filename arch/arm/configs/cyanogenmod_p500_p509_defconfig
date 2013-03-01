@@ -1,6 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux/arm 3.0.8 Kernel Configuration
+# LG Optimus One and LG Optimus T
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
