@@ -138,6 +138,18 @@ static struct display_table mddi_hitachi_img_end[] = {
 };
 #endif
 
+#ifdef CONFIG_FB_MSM_MDDI_LGE_HITACHI_NOVATEK_MESS
+static struct display_table mddi_hitachi_display_off[] = {
+	// Display off sequence
+	{0x3900, 1, {0x0000}}, // Set Idle mode On
+	{0x2800, 1, {0x0000}}, // Display Off
+	{REGFLAG_DELAY, 50, {}},
+	{0x1000, 4, {0x0000}},
+	{0x4F00, 1, {0x0001}},	//enter deep standby mode
+	{REGFLAG_DELAY, 100, {}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#else
 #if 0
 static struct display_table mddi_hitachi_display_off[] = {
 	// Display off sequence
@@ -164,6 +176,7 @@ static struct display_table mddi_hitachi_sleep_mode_on_data[] = {
  //LGE_S mahesh.kamarnat@lge.com -- LCD Patch
 #endif
  //LGE_E mahesh.kamarnat@lge.com -- LCD Patch
+#endif
 
 #if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 static struct display_table mddi_hitachi_initialize_1st[] = {
@@ -636,11 +649,19 @@ static int mddi_hitachi_lcd_store_on(void)
 
 static int mddi_hitachi_lcd_off(struct platform_device *pdev)
 {
+#ifdef CONFIG_FB_MSM_MDDI_LGE_HITACHI_NOVATEK_MESS
+if(is_lcd_on != FALSE) {
+	display_table_hitachi(mddi_hitachi_display_off, sizeof(mddi_hitachi_display_off)/sizeof(struct display_table));
+	mddi_hitachi_lcd_panel_poweroff();
+	is_lcd_on = FALSE;
+}
+#else
 //LGE_S mahesh.kamarnat@lge.com -- LCD Patch
 //	display_table_hitachi(mddi_hitachi_sleep_mode_on_data, sizeof(mddi_hitachi_sleep_mode_on_data)/sizeof(struct display_table));
 //LGE_E mahesh.kamarnat@lge.com -- LCD Patch
 	mddi_hitachi_lcd_panel_poweroff();
 	is_lcd_on = FALSE;
+#endif
 	return 0;
 }
 
@@ -709,7 +730,11 @@ static int __init mddi_hitachi_lcd_probe(struct platform_device *pdev)
 
 	msm_fb_add_device(pdev);
 
+#ifdef CONFIG_FB_MSM_MDDI_LGE_HITACHI_NOVATEK_MESS
+	ret = device_create_file(&pdev->dev, &dev_attr_lcd_onoff_novatek);
+#else
 	ret = device_create_file(&pdev->dev, &dev_attr_lcd_onoff);
+#endif
 
 	return 0;
 }
@@ -747,8 +772,6 @@ static int mddi_hitachi_lcd_init(void)
 	
 		// vsync config
 		pinfo->lcd.vsync_enable = FALSE;
-
-//        pinfo.mddi.is_type1 = FALSE;
 
 		pinfo->lcd.refx100 = (mddi_hitachi_rows_per_second * 100) /
                         		mddi_hitachi_rows_per_refresh;
