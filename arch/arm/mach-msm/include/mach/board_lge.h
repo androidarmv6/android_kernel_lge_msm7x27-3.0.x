@@ -361,11 +361,11 @@ struct msm_panel_lgit_pdata {
 	int initialized;
 };
 
-/* Define new structure named 'msm_panel_hitachi_pdata' */
 #define PANEL_ID_AUO          0
 #define PANEL_ID_HITACHI      1
 #define PANEL_ID_TOVIS        2
 #define PANEL_ID_LGDISPLAY    3
+/* Define new structure named 'msm_panel_hitachi_pdata' */
 struct msm_panel_hitachi_pdata {
 	int gpio;
 	int (*backlight_level)(int level, int max, int min);
@@ -377,7 +377,17 @@ struct msm_panel_hitachi_pdata {
 	int maker_id;
 };
 
-
+/* Define new structure named 'msm_panel_novatek_pdata' */
+struct msm_panel_novatek_pdata {
+	int gpio;
+	int (*backlight_level)(int level, int max, int min);
+	int (*pmic_backlight)(int level);
+	int (*panel_num)(void);
+	void (*panel_config_gpio)(int);
+	int *gpio_num;
+	int initialized;
+	int maker_id;
+};
 
 // LGE_DEV_PORTING UNIVA_S [ks82.jung@lge.com]
 /* Define new structure named 'msm_panel_ldp_pdata' */
@@ -400,16 +410,6 @@ struct msm_panel_ilitek_pdata {
 	int initialized;
 	int maker_id;
 	int (*lcd_power_save)(int);
-};
-
-struct msm_panel_novatek_pdata {
-	int gpio;
-	int (*backlight_level)(int level, int max, int min);
-	int (*pmic_backlight)(int level);
-	int (*panel_num)(void);
-	void (*panel_config_gpio)(int);
-	int *gpio_num;
-	int initialized;
 };
 
 /* tsc2007 platform data */

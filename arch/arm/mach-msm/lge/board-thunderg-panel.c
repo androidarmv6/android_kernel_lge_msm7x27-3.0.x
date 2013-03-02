@@ -128,8 +128,6 @@ static void __init msm_fb_add_devices(void)
 
 int lge_lcd_panel = -1;
 
-
-/* LGE_CHANGE [dojip.kim@lge.com] 2010-05-11, support the Sharp Panel (Novatek DDI) */
 static int mddi_novatek_pmic_backlight(int level)
 {
 	/* TODO: Backlight control here */
@@ -137,7 +135,7 @@ static int mddi_novatek_pmic_backlight(int level)
 }
 
 /* LGE_CHANGE
- * Define new structure named 'msm_panel_hitachi_pdata' 
+ * Define new structure named 'msm_panel_novatek_pdata' 
  * to use LCD initialization Flag (.initialized).
  * 2010-04-21, minjong.gong@lge.com
  */
@@ -161,9 +159,9 @@ static int mddi_hitachi_pmic_backlight(int level)
 	return 0;
 }
 
-#if 1//def CONFIG_MACH_MSM7X27_ALOHAG
 /* LGE_CHANGE
- * Define new structure named 'msm_panel_hitachi_pdata' to use LCD initialization Flag (.initialized).
+ * Define new structure named 'msm_panel_hitachi_pdata'
+ * to use LCD initialization Flag (.initialized).
  * 2010-04-21, minjong.gong@lge.com
  */
 static struct msm_panel_hitachi_pdata mddi_hitachi_panel_data = {
@@ -171,12 +169,6 @@ static struct msm_panel_hitachi_pdata mddi_hitachi_panel_data = {
 	.pmic_backlight = mddi_hitachi_pmic_backlight,
 	.initialized = 1,
 };
-#else
-static struct msm_panel_common_pdata mddi_hitachi_panel_data = {
-	.gpio = 102,				/* lcd reset_n */
-	.pmic_backlight = mddi_hitachi_pmic_backlight,
-};
-#endif
 
 static struct platform_device mddi_hitachi_panel_device = {
 	.name   = "mddi_hitachi_hvga",

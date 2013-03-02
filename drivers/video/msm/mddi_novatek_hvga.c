@@ -26,9 +26,9 @@
 #include <mach/vreg.h>
 #include <mach/board_lge.h>
 
-#define PANEL_DEBUG 0
+#define PANEL_DEBUG 1
 
-#define MDDI_NOVATEK_HVGA_PANEL_MFR_NAME		(0xB9F6)
+#define MDDI_NOVATEK_HVGA_PANEL_MFR_NAME	(0xB9F6)
 #define MDDI_NOVATEK_HVGA_PANEL_PRODUCT_CODE	(0x5451)
 
 #define LCD_CONTROL_BLOCK_BASE	0x110000
@@ -57,10 +57,7 @@ static void *mddi_novatek_vsync_handler_arg;
 static uint16 mddi_novatek_vsync_attempts;
 
 #if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
-/* LGE_CHANGE [dojip.kim@lge.com] 2010-05-11, from mddi_hitachi_hvga.c */
-/* LGE_CHANGE
- * Define new structure named 'msm_panel_hitachi_pdata' 
- * to use LCD initialization Flag (.initialized).
+/* Define new structure named 'msm_panel_novatek_pdata' to use LCD initialization Flag (initialized)
  * 2010-04-21, minjong.gong@lge.com
  */
 static struct msm_panel_novatek_pdata *mddi_novatek_pdata;
@@ -74,6 +71,7 @@ static int mddi_novatek_lcd_off(struct platform_device *pdev);
 static int mddi_novatek_lcd_init(void);
 static void mddi_novatek_lcd_panel_poweron(void);
 static void mddi_novatek_lcd_panel_poweroff(void);
+static void mddi_novatek_lcd_panel_store_poweron(void);
 
 #define DEBUG 1
 #if DEBUG
@@ -85,15 +83,53 @@ static void mddi_novatek_lcd_panel_poweroff(void);
 struct display_table {
     unsigned reg;
     unsigned char count;
-    unsigned val_list[256];
+    unsigned char val_list[20];
+};
+
+struct display_table2 {
+    unsigned reg;
+    unsigned char count;
+    unsigned char val_list[16384];
 };
 
 #define REGFLAG_DELAY             0XFFFE
 #define REGFLAG_END_OF_TABLE      0xFFFF   // END OF REGISTERS MARKER
 
-/** MTP programmed feature
- */
-//-#define MDDI_NOVATEK_PANEL_MTP_PROG	//MTP Programming disabled cuz it is not verified internally
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+static struct display_table mddi_novatek_2c[] = {
+	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#endif
+
+static struct display_table mddi_novatek_position_table[] = {
+	// set column address 
+	{0x2a,  4, {0x00, 0x00, 0x01, 0x3f}},
+	// set page address 
+	{0x2b,  4, {0x00, 0x00, 0x01, 0xdf}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+static struct display_table mddi_novatek_display_on_1st[] = {
+	// Display on sequence
+	{0x11, 4, {0x00, 0x00, 0x00, 0x00}},
+	{REGFLAG_DELAY, 80, {}},
+	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
+	{0x29, 4, {0x00, 0x00, 0x00, 0x00}},
+	{0x2c, 4, {0x00, 0x00, 0x00, 0x00}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#endif
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC)
+static struct display_table mddi_novatek_display_on_3rd[] = {
+	// Display on sequence
+	{0x11, 4, {0x00, 0x00, 0x00, 0x00}},
+	{REGFLAG_DELAY, 80, {}},
+	{0x29, 4, {0x00, 0x00, 0x00, 0x00}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#endif
 
 static struct display_table mddi_novatek_display_off[] = {
 	// Display off sequence
@@ -106,247 +142,187 @@ static struct display_table mddi_novatek_display_off[] = {
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
 
-#ifdef MDDI_NOVATEK_PANEL_MTP_PROG
-static struct display_table mddi_novatek_init_on[] = {
-	// Display on sequence
-	{0x3B00, 1, {0x0043}}, // RGB Setup
-	{0x3B01, 1, {0x0004}},
-	{0x3B02, 1, {0x0004}},
-	{0x3B03, 1, {0x0008}},
-	{0x3B04, 1, {0x0007}},
-	{0x4600, 1, {0x0000}},
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+static struct display_table mddi_novatek_initialize_1st[] = {
 
-	{0x3900, 1, {0x0000}}, // Set Idle Mode on
-	{0x1100, 1, {0x0000}}, // sleep out
+	// Power ON Sequence 
+	{0xf0, 4, {0x5a, 0x5a, 0x00, 0x00}},
+	{0xf1, 4, {0x5a, 0x5a, 0x00, 0x00}},
+	{0xd0, 4, {0x06, 0x00, 0x00, 0x00}},
 
-	{REGFLAG_DELAY, 100, {}},	//100ms delay
+	// PWRCTL 
+	{0xf4, 16, {0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			    0x04, 0x66, 0x02, 0x04, 0x66, 0x02, 0x00, 0x00}},
 
-	{0xF200, 1, {0x0001}}, // Cehck CMD status
+	// VCMCTL 
+	{0xf5, 12, {0x00, 0x59, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00,
+			    0x01, 0x01, 0x59, 0x45}},
+	{REGFLAG_DELAY, 10, {}},
 
-	{0x5100, 1, {0x007F}}, // Output LEDPWM=50% Duty
-	{0x5300, 1, {0x002C}}, // Output LEDPWM=50% Duty
-
-	{0x3600, 1, {0x0008}}, // Set RGB
-	{0x3A00, 1, {0x0055}}, // Set RGB565
-
-//	{0x3500, 1, {0x0000}}, // TE On, Vsync On
-
-	{0x3800, 1, {0x0000}}, // Set Idle Mode Off
-
-	{0x2900, 1, {0x0000}}, // Display On
-	{REGFLAG_END_OF_TABLE, 0x00, {}}
-};
-#else
-static struct display_table mddi_novatek_init_on[] = {
-	// Display on sequence
-	{0x3900, 1, {0x0000}}, // Set Idle Mode on
-	{0x1100, 1, {0x0000}}, // sleep out
-	{REGFLAG_DELAY, 100, {}},
-
-	{0xF300, 1, {0x00AA}}, // unlock cmd2
-	{0xF280, 1, {0x0002}}, // check cmd status
-	{0x0280, 1, {0x0011}}, // power ctrl
-	{0x0380, 1, {0x0000}}, // power ctrl
-
-  /* Frame Frequency */
-  /* = 5M(+-5%)/(RTN*(Lines+BP+FP) Hz */
-  /* Frame Frq = 67.2 Hz */
-	{0x0480, 1, {0x0056}}, // set LTPS timing : 150 clks
-	{0x0580, 1, {0x0056}}, // set LTPS timing : 150 clks
-	{0x0680, 1, {0x0056}}, // set LTPS timing : 150 clks
+	// MANPWRSEQ 
+	{0xf3, 8,  {0x01, 0x6e, 0x15, 0x07, 0x03, 0x00, 0x00, 0x00}},
+	// change 3rd parameter from 0x1d to 0x15 to reduce flicker.
 	
-	{0x0780, 1, {0x0000}}, // power ctrl
-	{0x0880, 1, {0x0033}}, // power ctrl
-	{0x0980, 1, {0x0043}}, // power ctrl
-	{0x0A80, 1, {0x0030}}, // power ctrl
-	{0x0B80, 1, {0x0044}}, // power ctrl
-	{0x0C80, 1, {0x0054}}, // power ctrl
-	{0x0D80, 1, {0x0030}}, // power ctrl
-	{0x0E80, 1, {0x0033}}, // power ctrl
-	{0x0F80, 1, {0x0043}}, // power ctrl
-	{0x1080, 1, {0x0030}}, // power ctrl
-	{0x1180, 1, {0x0000}}, // power ctrl
+	// DISCTL 
+	{0xf2, 20, {0x3b, 0x54, 0x0f, 0x18, 0x18, 0x00, 0x00, 0x00,
+			    0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x3f, 0x18,
+			    0x18, 0x18, 0x18, 0x00}},
+	// 0x3b - 480 line
+	// 0x3b - 60hz
 
-	{0x1280, 1, {0x000C}}, // VDDGR
+	{0xf6, 12, {0x04, 0x00, 0x08, 0x03, 0x01, 0x00, 0x01, 0x00,
+			    0x00, 0x00, 0x00, 0x00}},
 
-	{0x1380, 1, {0x0004}}, // VG Control
+	{0xf9, 4,  {0x27, 0x00, 0x00, 0x00}},
 
-	{0x1480, 1, {0x0058}}, // Set GVDD=5.0V
+	// PGAMMACTL 
+	//{0xfa, 16, {0x11, 0x13, 0x08, 0x14, 0x28, 0x2c, 0x2b, 0x0d,
+	//		    0x19, 0x14, 0x1e, 0x1e, 0x0f, 0x00, 0x00, 0x00}},
+	// Apply 3rd Cut gamma table. 2010-08-10. minjong.gong@lge.com
+	{0xfa, 16, {0x03, 0x03, 0x08, 0x28, 0x2b, 0x2f, 0x32, 0x12,
+				0x1d, 0x1f, 0x1c, 0x1c, 0x0f, 0x00, 0x00, 0x00}},
 
-#ifdef BOGUS
-	{0x1680, 1, {0x0070}}, // Set VCOMDC1=2.1V --> disabled for flickering
-#endif//BOGUS
+	// NGAMMACTL 
+	//{0xfb, 16, {0x11, 0x13, 0x08, 0x14, 0x28, 0x2c, 0x2b, 0x2d,
+	//			0x19, 0x14, 0x1e, 0x1e, 0x0f, 0x00, 0x00, 0x00}},
+	// Apply 3rd Cut gamma table. 2010-08-10. minjong.gong@lge.com
+	{0xfb, 16, {0x03, 0x03, 0x08, 0x28, 0x2b, 0x2f, 0x32, 0x12,
+				0x1d, 0x1f, 0x1c, 0x1c, 0x0f, 0x00, 0x00, 0x00}},
 
-	{0x1780, 1, {0x00CC}}, // VCOM Control
-	{0x1880, 1, {0x0080}}, // VCOM Control
-	{0x1980, 1, {0x0000}}, // VCOM Mode=0x00 for DC VCOM Mode 1
-	{0x1A80, 1, {0x0078}}, // VCOM Control
-	{0x1B80, 1, {0x0050}}, // Set VCOMMH=3.5V
-	{0x1C80, 1, {0x0080}}, // VCOM Control
+	// MADCTL 
+	{0x36,  4, {0x48, 0x00, 0x00, 0x00}},
 
-	{0x9480, 1, {0x0017}}, // Set LTPS timing : 23 clks
-	{0x9580, 1, {0x0021}}, // Set LTPS timing : 33 clks
-	{0x9680, 1, {0x0005}}, // Set LTPS timing : 5 clks
-	{0x9780, 1, {0x000C}}, // Set LTPS timing : 12 clks
-	{0x9880, 1, {0x0072}}, // Set LTPS timing : 114 clks
-	{0x9980, 1, {0x0012}}, // Set LTPS timing : 18 clks
-	{0x9A80, 1, {0x0088}}, // Set LTPS timing : 136 clks
-	{0x9B80, 1, {0x0001}}, // Set LTPS timing : 1 clks
-	{0x9C80, 1, {0x0005}}, // Set LTPS timing : 5 clks
-	{0x9D80, 1, {0x0016}}, // Set LTPS timing : 22 clks
-	{0x9E80, 1, {0x0000}}, // Set LTPS timing
-	{0x9F80, 1, {0x0000}}, // Set LTPS timing
-	{0xA380, 1, {0x00F8}}, // Set LTPS timing
-	{0xA480, 1, {0x003F}}, // Set LTPS timing
-	{0xA680, 1, {0x0008}}, // Set LTPS timing
+	// TEON 
+	{0x35,  4, {0x00, 0x00, 0x00, 0x00}},
 
-	{0x2880, 1, {0x0009}}, // Set Gamma G 
-	{0x2980, 1, {0x001E}}, 
-	{0x2A80, 1, {0x0045}}, 
-	{0x2B80, 1, {0x005E}}, 
-	{0x2C80, 1, {0x000D}}, 
-	{0x2D80, 1, {0x002E}}, 
-	{0x2E80, 1, {0x0061}}, 
-	{0x2F80, 1, {0x005F}},
-	{0x3080, 1, {0x0020}},
-	{0x3180, 1, {0x0026}},
-	{0x3280, 1, {0x00A2}},
-	{0x3380, 1, {0x0022}},
-	{0x3480, 1, {0x004A}},
-	{0x3580, 1, {0x0067}},
-	{0x3680, 1, {0x0073}}, 
-	{0x3780, 1, {0x0088}}, 
-	{0x3880, 1, {0x0025}}, 
-	{0x3980, 1, {0x0053}}, 
-	{0x3A80, 1, {0x0009}}, 
-	{0x3B80, 1, {0x0037}}, 
-	{0x3C80, 1, {0x0056}}, 
-	{0x3D80, 1, {0x006C}}, 
-	{0x3E80, 1, {0x0018}}, 
-	{0x3F80, 1, {0x0037}}, 
-	{0x4080, 1, {0x0060}}, 
-	{0x4180, 1, {0x0042}}, 
-	{0x4280, 1, {0x001B}}, 
-	{0x4380, 1, {0x0021}}, 
-	{0x4480, 1, {0x0089}}, 
-	{0x4580, 1, {0x001E}}, 
-	{0x4680, 1, {0x0051}}, 
-	{0x4780, 1, {0x0072}}, 
-	{0x4880, 1, {0x008D}}, 
-	{0x4980, 1, {0x00A6}}, 
-	{0x4A80, 1, {0x004D}}, 
-	{0x4B80, 1, {0x0062}},
-	{0x4C80, 1, {0x003D}}, // Set Gamma G
-	{0x4D80, 1, {0x0050}},
-	{0x4E80, 1, {0x006E}},
-	{0x4F80, 1, {0x0079}},
-	{0x5080, 1, {0x0009}},
-	{0x5180, 1, {0x0028}},
-	{0x5280, 1, {0x005C}},
-	{0x5380, 1, {0x0066}},
-	{0x5480, 1, {0x001F}},
-	{0x5580, 1, {0x0026}},
-	{0x5680, 1, {0x00A6}},
-	{0x5780, 1, {0x0021}},
-	{0x5880, 1, {0x004A}},
-	{0x5980, 1, {0x0065}},
-	{0x5A80, 1, {0x0075}},
-	{0x5B80, 1, {0x008A}},
-	{0x5C80, 1, {0x0026}},
-	{0x5D80, 1, {0x0053}},
-	{0x5E80, 1, {0x0009}},
-	{0x5F80, 1, {0x0036}},
-	{0x6080, 1, {0x0053}},
-	{0x6180, 1, {0x006A}},
-	{0x6280, 1, {0x001A}},
-	{0x6380, 1, {0x0035}},
-	{0x6480, 1, {0x0060}},
-	{0x6580, 1, {0x003F}},
-	{0x6680, 1, {0x001B}},
-	{0x6780, 1, {0x0022}},
-	{0x6880, 1, {0x0081}},
-	{0x6980, 1, {0x0027}},
-	{0x6A80, 1, {0x0057}},
-	{0x6B80, 1, {0x0076}},
-	{0x6C80, 1, {0x006F}},
-	{0x6D80, 1, {0x007C}},
-	{0x6E80, 1, {0x001A}},
-	{0x6F80, 1, {0x002D}},
-	{0x7080, 1, {0x0009}}, // Set Gamma B
-	{0x7180, 1, {0x0023}},
-	{0x7280, 1, {0x004F}},
-	{0x7380, 1, {0x0069}},
-	{0x7480, 1, {0x0015}},
-	{0x7580, 1, {0x003E}},
-	{0x7680, 1, {0x0069}},
-	{0x7780, 1, {0x0075}},
-	{0x7880, 1, {0x0020}},
-	{0x7980, 1, {0x0026}},
-	{0x7A80, 1, {0x00AE}},
-	{0x7B80, 1, {0x0022}},
-	{0x7C80, 1, {0x0050}},
-	{0x7D80, 1, {0x0067}},
-	{0x7E80, 1, {0x0079}},
-	{0x7F80, 1, {0x0086}},
-	{0x8080, 1, {0x0028}},
-	{0x8180, 1, {0x0053}},
-	{0x8280, 1, {0x0009}},
-	{0x8380, 1, {0x0034}},
-	{0x8480, 1, {0x0058}},
-	{0x8580, 1, {0x0067}},
-	{0x8680, 1, {0x0018}},
-	{0x8780, 1, {0x002F}},
-	{0x8880, 1, {0x005F}},
-	{0x8980, 1, {0x0037}},
-	{0x8A80, 1, {0x001A}},
-	{0x8B80, 1, {0x0020}},
-	{0x8C80, 1, {0x0073}},
-	{0x8D80, 1, {0x0016}},
-	{0x8E80, 1, {0x0041}},
-	{0x8F80, 1, {0x006A}},
-	{0x9080, 1, {0x0081}},
-	{0x9180, 1, {0x009B}},
-	{0x9280, 1, {0x0048}},
-	{0x9380, 1, {0x0062}},
-//	{0x2780, 1, {0x0033}}, // Reload Gamma //needed ??
+	// COLMOD 
+	{0x3a,  4, {0x55, 0x00, 0x00, 0x00}},
 
-	{0x1580, 1, {0x00AA}}, // Lock CMD2
-	{0xF200, 1, {0x0001}}, // Cehck CMD status
-	{REGFLAG_DELAY, 100, {}},
+	// set column address 
+	{0x2a,  4, {0x00, 0x00, 0x01, 0x3f}},
 
-	{0x3B00, 1, {0x0043}}, // RGB Setup
-	{0x3B01, 1, {0x0004}},
-	{0x3B02, 1, {0x0004}},
-	{0x3B03, 1, {0x0008}},
-	{0x3B04, 1, {0x0007}},
+	// set page address 
+	{0x2b,  4, {0x00, 0x00, 0x01, 0xdf}},
 
-	/* LGE_CHANGE [james.jang@lge.com] 2010-06-18, off LEDPWM(7Fh -> 00h) */
-	//{0x5100, 1, {0x007F}}, // Output LEDPWM=50% Duty
-	{0x5100, 1, {0x0000}}, // Output LEDPWM=0% Duty
-	{0x5300, 1, {0x002C}}, // Output LEDPWM=50% Duty
-
-	// set horizontal address 
-	{0x2a00, 1, {0x0000}}, // XSA
-	{0x2a01, 1, {0x0000}}, // XSA
-	{0x2a02, 1, {0x0000}}, // XEA
-	{0x2a03, 1, {0x013f}}, // XEA, 320-1
-	// set vertical address 
-	{0x2b00, 1, {0x0000}}, // YSA
-	{0x2b01, 1, {0x0000}}, // YSA
-	{0x2b02, 1, {0x0000}}, // YEA
-	{0x2b03, 1, {0x01df}}, // YEA, 480-1
-
-	{0x3600, 1, {0x0008}}, // Set RGB
-	{0x3A00, 1, {0x0055}}, // Set RGB565
-
-	{0x3500, 1, {0x0000}}, // TE On, Vsync On
-
-	{0x3800, 1, {0x0000}}, // Set Idle Mode Off
-
-	{0x2900, 1, {0x0000}}, // Display On
+	{0x2c,  4, {0x00, 0x00, 0x00, 0x00}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
-#endif/*MDDI_NOVATEK_PANEL_MTP_PROG*/
+#endif
+
+#ifdef CONFIG_MACH_MSM7X27_THUNDERC
+static struct display_table mddi_novatek_initialize_3rd_vs660[] = {
+
+	// Power ON Sequence
+	{0xf0, 4, {0x5a, 0x5a, 0x00, 0x00}},
+	{0xf1, 4, {0x5a, 0x5a, 0x00, 0x00}},
+
+	// PWRCTL
+	// [VS660] DCN set value : 0x3F. For reducing LCD noise.
+	{0xf4, 16, {0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			    0x3f, 0x66, 0x02, 0x3f, 0x66, 0x02, 0x00, 0x00}},
+
+	// VCMCTL
+	// Revert 6th parameter. From 0x04 to 0x00. 2010-09-02. minjong.gong@lge.com
+	{0xf5, 12, {0x00, 0x59, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00,
+			    0x00, 0x00, 0x59, 0x45}},
+	{REGFLAG_DELAY, 10, {}},
+
+	// MANPWRSEQ
+	// Revert 1st parameter. From 0x03 to 0x01. 2010-09-02. minjong.gong@lge.com
+	{0xf3, 8,  {0x01, 0x6e, 0x15, 0x07, 0x03, 0x00, 0x00, 0x00}},
+
+	// DISCTL
+	// Revert 2nd and 15th parameters. From 0x54 to 0x4d.
+	// Revert 6th, 7th, 9th and 10th parameters. From 0x08 to ox00.
+	// 2010-09-02. minjong.gong@lge.com
+	{0xf2, 20, {0x3b, 0x4d, 0x0f, 0x08, 0x08, 0x00, 0x00, 0x00,
+			    0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x4d, 0x08,
+			    0x08, 0x08, 0x08, 0x00}},
+
+	{0xf6, 12, {0x04, 0x00, 0x08, 0x03, 0x01, 0x00, 0x01, 0x00,
+			    0x00, 0x00, 0x00, 0x00}},
+
+	{0xf9, 4,  {0x27, 0x00, 0x00, 0x00}},
+
+	// PGAMMACTL
+	{0xfa, 16, {0x03, 0x03, 0x08, 0x28, 0x2b, 0x2f, 0x32, 0x12,
+			    0x1d, 0x1f, 0x1c, 0x1c, 0x0f, 0x00, 0x00, 0x00}},
+
+	// MADCTL
+	{0x36,  4, {0x48, 0x00, 0x00, 0x00}},
+
+	// TEON
+	{0x35,  4, {0x00, 0x00, 0x00, 0x00}},
+
+	// COLMOD
+	{0x3a,  4, {0x55, 0x00, 0x00, 0x00}},
+
+	// set column address
+	{0x2a,  4, {0x00, 0x00, 0x01, 0x3f}},
+
+	// set page address
+	{0x2b,  4, {0x00, 0x00, 0x01, 0xdf}},
+
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#endif
+
+#ifdef CONFIG_MACH_MSM7X27_THUNDERG
+static struct display_table mddi_novatek_initialize_3rd_p500[] = {
+
+	// Power ON Sequence
+	{0xf0, 4, {0x5a, 0x5a, 0x00, 0x00}},
+	{0xf1, 4, {0x5a, 0x5a, 0x00, 0x00}},
+
+	// PWRCTL
+	{0xf4, 16, {0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			    0x04, 0x66, 0x02, 0x04, 0x66, 0x02, 0x00, 0x00}},
+
+	// VCMCTL
+	// Revert 6th parameter. From 0x04 to 0x00. 2010-09-02. minjong.gong@lge.com
+	{0xf5, 12, {0x00, 0x59, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00,
+			    0x00, 0x00, 0x59, 0x45}},
+	{REGFLAG_DELAY, 10, {}},
+
+	// MANPWRSEQ
+	// Revert 1st parameter. From 0x03 to 0x01. 2010-09-02. minjong.gong@lge.com
+	{0xf3, 8,  {0x01, 0x6e, 0x15, 0x07, 0x03, 0x00, 0x00, 0x00}},
+
+	// DISCTL
+	// Revert 2nd and 15th parameters. From 0x54 to 0x4d.
+	// Revert 6th, 7th, 9th and 10th parameters. From 0x08 to ox00.
+	// 2010-09-02. minjong.gong@lge.com
+	{0xf2, 20, {0x3b, 0x4d, 0x0f, 0x08, 0x08, 0x00, 0x00, 0x00,
+			    0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x4d, 0x08,
+			    0x08, 0x08, 0x08, 0x00}},
+
+	{0xf6, 12, {0x04, 0x00, 0x08, 0x03, 0x01, 0x00, 0x01, 0x00,
+			    0x00, 0x00, 0x00, 0x00}},
+
+	{0xf9, 4,  {0x27, 0x00, 0x00, 0x00}},
+
+	// PGAMMACTL
+	{0xfa, 16, {0x03, 0x03, 0x08, 0x28, 0x2b, 0x2f, 0x32, 0x12,
+			    0x1d, 0x1f, 0x1c, 0x1c, 0x0f, 0x00, 0x00, 0x00}},
+
+	// MADCTL
+	{0x36,  4, {0x48, 0x00, 0x00, 0x00}},
+
+	// TEON
+	{0x35,  4, {0x00, 0x00, 0x00, 0x00}},
+
+	// COLMOD
+	{0x3a,  4, {0x55, 0x00, 0x00, 0x00}},
+
+	// set column address
+	{0x2a,  4, {0x00, 0x00, 0x01, 0x3f}},
+
+	// set page address
+	{0x2b,  4, {0x00, 0x00, 0x01, 0xdf}},
+
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
+};
+#endif
 
 void display_table_novatek(struct display_table *table, unsigned int count)
 {
@@ -360,7 +336,7 @@ void display_table_novatek(struct display_table *table, unsigned int count)
         switch (reg) {
 			
             case REGFLAG_DELAY :
-                mdelay(table[i].count);
+                msleep(table[i].count);
 				EPRINTK("%s() : delay %d msec\n", __func__, table[i].count);
                 break;
 				
@@ -368,13 +344,12 @@ void display_table_novatek(struct display_table *table, unsigned int count)
                 break;
 				
             default:
-                mddi_host_register_cmds_write32(reg, table[i].count, table[i].val_list, 1, 0, 0);
-                //EPRINTK("%s: reg : 0x%04X, val : 0x%04X\n", __func__, reg, table[i].val_list[0]);
+                mddi_host_register_cmds_write8(reg, table[i].count, table[i].val_list, 0, 0, 0);
+		//EPRINTK("%s: reg : %x, val : %x.\n", __func__, reg, table[i].val_list[0]);
        	}
     }
-
+	
 }
-
 
 static void mddi_novatek_vsync_set_handler(msm_fb_vsync_handler_type handler,	/* ISR to be executed */
 					 void *arg)
@@ -424,11 +399,7 @@ static void mddi_novatek_lcd_vsync_detected(boolean detected)
 	uint32 num_vsyncs;
 #endif
 
-	mddi_vsync_detect_enabled = TRUE;;
-
 #if 0 /* Block temporaly till vsync implement */
-	mddi_queue_register_write_int(0x2C00, 0);
-
 	if ((detected) || (mddi_novatek_vsync_attempts > 5)) {
 		if ((detected) || (mddi_novatek_monitor_refresh_value)) {
 			/* if (start_time != 0) */
@@ -500,64 +471,112 @@ static void mddi_novatek_lcd_vsync_detected(boolean detected)
 	}
 #endif
 }
-
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+static void novatek_workaround(void)
+{
+	if (lge_bd_rev <= LGE_REV_E) {
+		/* Use workaround code for 1st cut LCD.
+		 * 2010-04-22, minjong.gong@lge.com
+		 */
+		display_table_novatek(mddi_novatek_2c,
+					  sizeof(mddi_novatek_2c) / sizeof(struct display_table));
+	}
+	/* Add code to prevent LCD shift.
+	 * 2010-05-18, minjong.gong@lge.com
+	 */
+	display_table_novatek(mddi_novatek_position_table,
+				  sizeof(mddi_novatek_position_table) / sizeof(struct display_table));
+}
+#endif
 
 static int mddi_novatek_lcd_on(struct platform_device *pdev)
 {
 	EPRINTK("%s: started.\n", __func__);
 
-#ifndef BOGUS
-	/* LGE_CHANGE_S, [munyoung@lge.com] workaround blink issue when first call of lcd_on */
-	if(is_lcd_on == -1) {
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+	if (system_state == SYSTEM_BOOTING && mddi_novatek_pdata->initialized) {
+		novatek_workaround();
 		is_lcd_on = TRUE;
 		return 0;
 	}
-	/* LGE_CHANGE_E */
-#endif//BOGUS
-
-	if(is_lcd_on != TRUE )
-	{
-#ifdef BOGUS//useless
-		/* LGE_CHANGE [dojip.kim@lge.com] 2010-05-11, from mddi_hitachi_hvga.c */
-		/* LGE_CHANGE
-		 * Define new structure named 'msm_panel_hitachi_pdata'
-		 * to use LCD initialization Flag (.initialized).
-		 * 2010-04-21, minjong.gong@lge.com
-		 */
-		if (system_state == SYSTEM_BOOTING && mddi_novatek_pdata->initialized) {
-			is_lcd_on = TRUE;
-		}
-#endif/*BOGUS*/
-
-		// LCD HW Reset
-		mddi_novatek_lcd_panel_poweron();
-
-		display_table_novatek(mddi_novatek_init_on,
-			   	sizeof(mddi_novatek_init_on)/sizeof(struct display_table));
-
-		is_lcd_on = TRUE;
-
-		EPRINTK("%s: NOVATEK LCD ON\n",__func__);
+#endif
+	// LCD HW Reset
+	mddi_novatek_lcd_panel_poweron();
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG)
+	if (lge_bd_rev <= LGE_REV_E) {
+		EPRINTK("ThunderG ==> lge_bd_rev = %d : 1st LCD initial\n", lge_bd_rev);
+		display_table_novatek(mddi_novatek_initialize_1st, sizeof(mddi_novatek_initialize_1st)/sizeof(struct display_table));
+		display_table_novatek(mddi_novatek_display_on_1st, sizeof(mddi_novatek_display_on_1st) / sizeof(struct display_table));
+	} else {
+		EPRINTK("ThunderG ==> lge_bd_rev = %d : 3rd LCD initial\n", lge_bd_rev);
+		display_table_novatek(mddi_novatek_initialize_3rd_p500, sizeof(mddi_novatek_initialize_3rd_p500)/sizeof(struct display_table));
+		display_table_novatek(mddi_novatek_display_on_3rd, sizeof(mddi_novatek_display_on_3rd) / sizeof(struct display_table));
 	}
+#elif defined(CONFIG_MACH_MSM7X27_THUNDERA)
+	display_table_novatek(mddi_novatek_initialize_1st, sizeof(mddi_novatek_initialize_1st)/sizeof(struct display_table));
+	display_table_novatek(mddi_novatek_display_on_1st, sizeof(mddi_novatek_display_on_1st) / sizeof(struct display_table));
+#elif defined(CONFIG_MACH_MSM7X27_THUNDERC)
+	if (lge_bd_rev <= LGE_REV_D) {
+		EPRINTK("ThunderC ==> lge_bd_rev = %d : 1st LCD initial\n", lge_bd_rev);
+		display_table_novatek(mddi_novatek_initialize_1st, sizeof(mddi_novatek_initialize_1st)/sizeof(struct display_table));
+		display_table_novatek(mddi_novatek_display_on_1st, sizeof(mddi_novatek_display_on_1st) / sizeof(struct display_table));
+	} else {
+		EPRINTK("ThunderC ==> lge_bd_rev = %d : 3rd LCD initial\n", lge_bd_rev);
+		display_table_novatek(mddi_novatek_initialize_3rd_vs660, sizeof(mddi_novatek_initialize_3rd_vs660)/sizeof(struct display_table));
+		display_table_novatek(mddi_novatek_display_on_3rd, sizeof(mddi_novatek_display_on_3rd) / sizeof(struct display_table));
+	}
+#endif
+	is_lcd_on = TRUE;
+	return 0;
+}
 
+static int mddi_novatek_lcd_store_on(void)
+{
+	EPRINTK("%s: started.\n", __func__);
+
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+	if (system_state == SYSTEM_BOOTING && mddi_novatek_pdata->initialized) {
+		is_lcd_on = TRUE;
+		return 0;
+	}
+#endif
+	// LCD HW Reset
+	mddi_novatek_lcd_panel_store_poweron();
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG)
+	if (lge_bd_rev <= LGE_REV_E) {
+		display_table_novatek(mddi_novatek_initialize_1st, sizeof(mddi_novatek_initialize_1st)/sizeof(struct display_table));
+		mdelay(200);
+		display_table_novatek(mddi_novatek_display_on_1st, sizeof(mddi_novatek_display_on_1st) / sizeof(struct display_table));
+	} else {
+		display_table_novatek(mddi_novatek_initialize_3rd_p500, sizeof(mddi_novatek_initialize_3rd_p500)/sizeof(struct display_table));
+		mdelay(200);
+		display_table_novatek(mddi_novatek_display_on_3rd, sizeof(mddi_novatek_display_on_3rd) / sizeof(struct display_table));
+	}
+#elif defined(CONFIG_MACH_MSM7X27_THUNDERA)
+	display_table_novatek(mddi_novatek_initialize_1st, sizeof(mddi_novatek_initialize_1st)/sizeof(struct display_table));
+	mdelay(200);
+	display_table_novatek(mddi_novatek_display_on_1st, sizeof(mddi_novatek_display_on_1st) / sizeof(struct display_table));
+#elif defined(CONFIG_MACH_MSM7X27_THUNDERC)
+	if (lge_bd_rev <= LGE_REV_D) {
+		display_table_novatek(mddi_novatek_initialize_1st, sizeof(mddi_novatek_initialize_1st)/sizeof(struct display_table));
+		mdelay(200);
+		display_table_novatek(mddi_novatek_display_on_1st, sizeof(mddi_novatek_display_on_1st) / sizeof(struct display_table));
+	} else {
+		display_table_novatek(mddi_novatek_initialize_3rd_vs660, sizeof(mddi_novatek_initialize_3rd_vs660)/sizeof(struct display_table));
+		mdelay(200);
+		display_table_novatek(mddi_novatek_display_on_3rd, sizeof(mddi_novatek_display_on_3rd) / sizeof(struct display_table));
+	}
+#endif
+	is_lcd_on = TRUE;
 	return 0;
 }
 
 static int mddi_novatek_lcd_off(struct platform_device *pdev)
 {
-	EPRINTK("%s: started.\n", __func__);
+	display_table_novatek(mddi_novatek_sleep_mode_on_data, sizeof(mddi_novatek_sleep_mode_on_data)/sizeof(struct display_table));
 
-	if(is_lcd_on != FALSE)
-	{
-		display_table_novatek(mddi_novatek_display_off,
-				sizeof(mddi_novatek_display_off)/sizeof(struct display_table));
-
-		mddi_novatek_lcd_panel_poweroff();
-
-		is_lcd_on = FALSE;
-		EPRINTK("%s: NOVATEK LCD OFF\n", __func__);
-	}
-
+	mddi_novatek_lcd_panel_poweroff();
+	is_lcd_on = FALSE;
 	return 0;
 }
 
@@ -585,18 +604,15 @@ ssize_t mddi_novatek_lcd_store_onoff(struct device *dev, struct device_attribute
 	return 0;
 }
 
-#if 0
 int mddi_novatek_position(void)
 {
-	display_table_novatek(mddi_novatek_position_table, ARRAY_SIZE(mddi_notatek_position_table));
+	display_table_novatek(mddi_novatek_position_table, ARRAY_SIZE(mddi_novatek_position_table));
 	return 0;
 }
 EXPORT_SYMBOL(mddi_novatek_position);
-#endif
-//LGSI_P505_US_ATnT_UI_08092011_Deepthi_Start CTS FilePermission Issue
-//DEVICE_ATTR(lcd_onoff_novatek, 0666, mddi_novatek_lcd_show_onoff, mddi_novatek_lcd_store_onoff);
-DEVICE_ATTR(lcd_onoff_novatek, 0644, mddi_novatek_lcd_show_onoff, mddi_novatek_lcd_store_onoff);
-//LGSI_P505_US_ATnT_UI_08092011_Deepthi_End CTS FilePermission Issue
+
+DEVICE_ATTR(lcd_onoff, 0666, mddi_novatek_lcd_show_onoff, mddi_novatek_lcd_store_onoff);
+
 struct msm_fb_panel_data novatek_panel_data0 = {
 	.on = mddi_novatek_lcd_on,
 	.off = mddi_novatek_lcd_off,
@@ -642,37 +658,12 @@ static int mddi_novatek_lcd_init(void)
 	struct msm_panel_info *pinfo;
 
 #ifdef CONFIG_FB_MSM_MDDI_AUTO_DETECT
-extern int lge_lcd_panel;
+	u32 id;
+	id = mddi_get_client_id();
 
-//	u32 id;
+	/* TODO: Check client id */
 
-	ret = msm_fb_detect_client("mddi_novatek_hvga");
-	if (ret == -ENODEV)
-		return 0;
-
-	if (!ret) {
-		int maker_id_gpio_val = -1;
-		gpio_direction_input(101);
-		gpio_tlmm_config(GPIO_CFG(101, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-		maker_id_gpio_val = gpio_get_value(101);
-
-		if ( 0 != maker_id_gpio_val) {
-			#ifdef BOGUS
-			id = mddi_get_client_id();
-			if ((id >> 16) != MDDI_NOVATEK_HVGA_PANEL_MFR_NAME) {
-				return 0;
-			} else
-			#endif//BOGUS
-			{
-				lge_lcd_panel = 1;	//novatek
-				printk(KERN_INFO "NOVATEK panel detected\n");
-			}
-		} else {
-			return 0;
-		}
-	}
-#endif /*CONFIG_FB_MSM_MDDI_AUTO_DETECT*/
-
+#endif
 	ret = platform_driver_register(&this_driver);
 	if (!ret) {
 		pinfo = &novatek_panel_data0.panel_info;
@@ -681,7 +672,7 @@ extern int lge_lcd_panel;
 		pinfo->yres = 480;
 		pinfo->type = MDDI_PANEL;
 		pinfo->pdest = DISPLAY_1;
-		pinfo->mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
+		pinfo->mddi.vdopkt = 0x23;//MDDI_DEFAULT_PRIM_PIX_ATTR;
 		pinfo->wait_cycle = 0;
 		pinfo->bpp = 16;
 	
@@ -690,9 +681,9 @@ extern int lge_lcd_panel;
 		pinfo->lcd.refx100 = (mddi_novatek_rows_per_second * 100) /
                         		mddi_novatek_rows_per_refresh;
 
-		pinfo->lcd.v_back_porch = 200;
-		pinfo->lcd.v_front_porch = 200;
-		pinfo->lcd.v_pulse_width = 30;
+		pinfo->lcd.v_back_porch = 6;
+		pinfo->lcd.v_front_porch = 6;
+		pinfo->lcd.v_pulse_width = 4;
 
 		pinfo->lcd.hw_vsync_mode = FALSE;
 		pinfo->lcd.vsync_notifier_period = (1 * HZ);
@@ -700,7 +691,6 @@ extern int lge_lcd_panel;
 		pinfo->bl_max = 4;
 		pinfo->bl_min = 1;
 
-    /* LGE_CHANGE [james.jang@lge.com] 2010-06-07, set the MDDI host clock rate */
 		pinfo->clk_rate = 122880000;
 		pinfo->clk_min =   120000000;
 		pinfo->clk_max =   130000000;
@@ -725,12 +715,6 @@ extern unsigned fb_height;
 
 static void mddi_novatek_lcd_panel_poweron(void)
 {
-	/* LGE_CHANGE [dojip.kim@lge.com] 2010-05-11, from mddi_hitachi_hvga.c */
-	/* LGE_CHANGE
-	 * Define new structure named 'msm_panel_hitachi_pdata'
-	 * to use LCD initialization Flag (.initialized).
-	 * 2010-04-21, minjong.gong@lge.com
-	 */
 #if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 	struct msm_panel_novatek_pdata *pdata = mddi_novatek_pdata;
 #else
@@ -744,11 +728,32 @@ static void mddi_novatek_lcd_panel_poweron(void)
 
 	if(pdata && pdata->gpio) {
 		gpio_set_value(pdata->gpio, 0);
-//		gpio_direction_output(pdata->gpio, 0);
 		mdelay(10);
 		gpio_set_value(pdata->gpio, 1);
-//		gpio_direction_output(pdata->gpio, 1);
 		mdelay(20);
+	}
+}
+
+static void mddi_novatek_lcd_panel_store_poweron(void)
+{
+#if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
+	struct msm_panel_novatek_pdata *pdata = mddi_novatek_pdata;
+#else
+	struct msm_panel_common_pdata *pdata = mddi_novatek_pdata;
+#endif
+
+	EPRINTK("%s: started.\n", __func__);
+
+	fb_width = 320;
+	fb_height = 480;
+
+	if(pdata && pdata->gpio) {
+	//	gpio_set_value(pdata->gpio, 1);
+	//	mdelay(10);
+		gpio_set_value(pdata->gpio, 0);
+		mdelay(50);
+		gpio_set_value(pdata->gpio, 1);
+		mdelay(50);
 	}
 }
 
@@ -757,21 +762,13 @@ static void mddi_novatek_lcd_panel_poweron(void)
   * In sleep mode disable LCD by assertion low on reset pin.
   * 2010-06-07, minjong.gong@lge.com
   */
-
 static void mddi_novatek_lcd_panel_poweroff(void)
 {
-	/* LGE_CHANGE [dojip.kim@lge.com] 2010-05-11, from mddi_hitachi_hvga.c */
-	/* LGE_CHANGE
-	 * Define new structure named 'msm_panel_hitachi_pdata'
-	 * to use LCD initialization Flag (.initialized).
-	 * 2010-04-21, minjong.gong@lge.com
-	 */
 #if defined(CONFIG_MACH_MSM7X27_THUNDERG) || defined(CONFIG_MACH_MSM7X27_THUNDERC) || defined(CONFIG_MACH_MSM7X27_THUNDERA)
 	struct msm_panel_novatek_pdata *pdata = mddi_novatek_pdata;
 #else
 	struct msm_panel_common_pdata *pdata = mddi_novatek_pdata;
 #endif
-
 	EPRINTK("%s: started.\n", __func__);
 
 	fb_width = 320;
@@ -779,7 +776,6 @@ static void mddi_novatek_lcd_panel_poweroff(void)
 
 	if(pdata && pdata->gpio) {
 		gpio_set_value(pdata->gpio, 0);
-//		gpio_direction_output(pdata->gpio, 0);
 		mdelay(10);
 	}
 }
