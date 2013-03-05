@@ -331,6 +331,12 @@ config LGE_GRAM_REFRESH_PATCH
 	  this can cause displaying broken screen in time of turning backlight on.
 	  for preventing this problem, add refreshing routine before turning 
 	  backlight on by using late resume mechanism.
+	  
+config LGE_VSYNC_ENABLED
+	bool "Enable VSYNC"
+	default n
+	help
+	  Enable VSYNC
 
 config LGE_FACTORY_PATCH
 	bool "LGE workaround patch for factory process"
