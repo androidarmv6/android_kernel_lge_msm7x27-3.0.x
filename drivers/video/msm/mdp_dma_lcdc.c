@@ -51,6 +51,32 @@ extern uint32 mdp_intr_mask;
 int first_pixel_start_x;
 int first_pixel_start_y;
 
+ssize_t mdp_dma_lcdc_show_event(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	ssize_t ret = 0;
+
+	if (atomic_read(&vsync_cntrl.suspend) > 0 ||
+		atomic_read(&vsync_cntrl.vsync_resume) == 0)
+		return 0;
+
+	INIT_COMPLETION(vsync_cntrl.vsync_wait);
+
+	ret = wait_for_completion_interruptible_timeout(&vsync_cntrl.vsync_wait,
+		msecs_to_jiffies(VSYNC_PERIOD * 4));
+	if (ret <= 0) {
+		ret = snprintf(buf, PAGE_SIZE, "VSYNC=%llu",
+				ktime_to_ns(ktime_get()));
+		buf[strlen(buf) + 1] = '\0';
+		return ret;
+	}
+
+	ret = snprintf(buf, PAGE_SIZE, "VSYNC=%llu",
+			ktime_to_ns(vsync_cntrl.vsync_time));
+	buf[strlen(buf) + 1] = '\0';
+	return ret;
+}
+
 int mdp_lcdc_on(struct platform_device *pdev)
 {
 	int lcdc_width;
