@@ -20,7 +20,7 @@ obj-$(CONFIG_LGE_DIAGTEST) += lg_diag_screen_shot.o
 #obj-$(CONFIG_LGE_DIAGTEST) += lg_diag_wifi.o
 
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan.o
-obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-mmc.o
+obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-mmc-new.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-snd.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-panel.o
 obj-$(CONFIG_MACH_MSM7X27_PECAN) += board-pecan-bt.o
