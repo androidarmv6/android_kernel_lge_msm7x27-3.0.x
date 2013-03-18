@@ -836,7 +836,7 @@ static struct kgsl_device_platform_data kgsl_3d0_pdata = {
 	*/
 	.pwrlevel = {
 		{
-#if defined(CONFIG_MACH_MSM7X27_PECAN)
+#if defined(CONFIG_MACH_LGE)
 /* we can take this punishment */
 			.gpu_freq = 245760000,
 			.bus_freq = 192000000,
