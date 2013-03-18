@@ -359,4 +359,12 @@ config MAX17040_FUEL_GAUGE
 	help
 	  Say Y to enable support for MAX17040 fuel gauge.
 
+config LGE_FUEL_SPG
+	tristate "LGE FUEL SPG"
+	depends on ARCH_MSM && BATTERY_MSM
+	default n
+	help
+	  Say Y to enable LGE Fuel Gauge
+
+
 endif # POWER_SUPPLY

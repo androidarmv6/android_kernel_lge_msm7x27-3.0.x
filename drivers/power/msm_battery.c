@@ -371,7 +371,7 @@ static int msm_batt_power_get_property(struct power_supply *psy,
 		val->intval = msm_batt_info.batt_capacity;
 		break;
 	case POWER_SUPPLY_PROP_TEMP:
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE && !defined(CONFIG_MACH_MSM7X27_PECAN)
 /* 2011-04-11 by hyuncheol0@lge.com
  * We use "temp" attribute for the temperature of battery.
  * The android framework and application treat it as xx.x degree Celsius.
@@ -491,7 +491,7 @@ static int msm_batt_get_batt_chg_status(void)
 	return 0;
 }
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE && !defined(CONFIG_MACH_MSM7X27_PECAN)
 /* 2010-12-14 by baborobo@lge.com
  * if it is updateing of battery-status by rpc,
  * don't request updateing of battery-status
@@ -508,7 +508,9 @@ static void msm_batt_update_psy_status(void)
 	u32     battery_voltage;
 	u32	battery_temp;
 #if defined(CONFIG_LGE_FUEL_GAUGE) || defined(CONFIG_LGE_FUEL_SPG)
+#if !defined(CONFIG_MACH_MSM7X27_PECAN)
 	u32	battery_tmp_cap;
+#endif
 	u32	battery_soc;
 #endif
 	struct	power_supply	*supp;
@@ -563,7 +565,7 @@ static void msm_batt_update_psy_status(void)
 		if ((unnecessary_event_count % 20) == 1)
 			DBG_LIMIT("BATT: same event count = %u\n",
 				 unnecessary_event_count);
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE && !defined(CONFIG_MACH_MSM7X27_PECAN)
     /* 2010-12-14 by baborobo@lge.com
      * to check the updating-status
      */
@@ -574,6 +576,7 @@ static void msm_batt_update_psy_status(void)
 
 	unnecessary_event_count = 0;
 
+#if !defined(CONFIG_MACH_MSM7X27_PECAN)
 #if defined(CONFIG_LGE_FUEL_GAUGE) || defined(CONFIG_LGE_FUEL_SPG)
 
 	DBG_LIMIT("BATT: rcvd: %d, %d, %d, %d, %d, %d, %d\n",
@@ -583,6 +586,7 @@ static void msm_batt_update_psy_status(void)
 	DBG_LIMIT("BATT: rcvd: %d, %d, %d, %d; %d, %d\n",
 		 charger_status, charger_type, battery_status,
 		 battery_level, battery_voltage, battery_temp);
+#endif
 #endif
 
 	if (battery_status == BATTERY_STATUS_INVALID &&
@@ -807,12 +811,20 @@ static void msm_batt_update_psy_status(void)
 	msm_batt_info.battery_temp 	= battery_temp;
 
 #if defined(CONFIG_LGE_FUEL_GAUGE) || defined(CONFIG_LGE_FUEL_SPG)
+#if !defined(CONFIG_MACH_MSM7X27_PECAN)
 	battery_tmp_cap = msm_batt_info.calculate_capacity(battery_soc);
 
 	if((msm_batt_info.battery_voltage != battery_voltage) ||
 		(msm_batt_info.batt_capacity != battery_tmp_cap)) {
+#else
+	if(msm_batt_info.battery_voltage != battery_voltage) {
+#endif
 		msm_batt_info.battery_voltage = battery_voltage;
+#if !defined(CONFIG_MACH_MSM7X27_PECAN)
 		msm_batt_info.batt_capacity = battery_tmp_cap;
+#else
+		msm_batt_info.batt_capacity = msm_batt_info.calculate_capacity(battery_soc);
+#endif
 		DBG_LIMIT("BATT: voltage = %u mV [capacity = %d%%]\n",
 			 battery_voltage, msm_batt_info.batt_capacity);
 
@@ -838,7 +850,7 @@ static void msm_batt_update_psy_status(void)
 		power_supply_changed(supp);
 	}
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE && !defined(CONFIG_MACH_MSM7X27_PECAN)
   /* 2010-12-14 by baborobo@lge.com
    * to check the updating-status
    */
@@ -1608,7 +1620,7 @@ static struct attribute_group dev_attr_grp = {
 };
 #endif
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE && !defined(CONFIG_MACH_MSM7X27_PECAN)
 static unsigned batt_volt;
 static unsigned chg_therm;
 static unsigned pcb_version;
@@ -1798,7 +1810,7 @@ static int __devinit msm_batt_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "%s : Using PIF ZIG (%d)\n", __func__, pif_value);
 #endif
 	
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE && !defined(CONFIG_MACH_MSM7X27_PECAN)
 		rc = sysfs_create_group(&pdev->dev.kobj, &dev_attr_grp_lge_batt_info);
 		if(rc < 0) {
 			dev_err(&pdev->dev,
@@ -1817,7 +1829,7 @@ static int __devexit msm_batt_remove(struct platform_device *pdev)
 	sysfs_remove_group(&pdev->dev.kobj,&dev_attr_grp);
 #endif
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_LGE  && !defined(CONFIG_MACH_MSM7X27_PECAN)
 	sysfs_remove_group(&pdev->dev.kobj,&dev_attr_grp_lge_batt_info);
 #endif
 
