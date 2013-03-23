@@ -34,8 +34,6 @@
 #include <proto/ethernet.h>
 #include <wlioctl.h>
 
-#define SOFTAP 1 // LGE
-
 #define WL_SCAN_PARAMS_SSID_MAX 	10
 #define GET_SSID			"SSID="
 #define GET_CHANNEL			"CH="

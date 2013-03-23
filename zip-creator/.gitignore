@@ -1,5 +1,0 @@
-*.zip
-system/
-system/lib
-system/lib/modules/
-system/lib/modules/*.ko
