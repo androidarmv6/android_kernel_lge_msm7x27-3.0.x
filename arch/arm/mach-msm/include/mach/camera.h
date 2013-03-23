@@ -105,7 +105,6 @@ struct msm_vpe_phy_info {
 #define VFE31_OUTPUT_MODE_P (0x1 << 3)
 #define VFE31_OUTPUT_MODE_T (0x1 << 4)
 #define VFE31_OUTPUT_MODE_P_ALL_CHNLS (0x1 << 5)
-#endif
 
 #define CSI_EMBED_DATA 0x12
 #define CSI_RESERVED_DATA_0 0x13
