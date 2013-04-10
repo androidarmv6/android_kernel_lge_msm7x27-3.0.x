@@ -60,12 +60,16 @@ static int thunderg_bluetooth_toggle_radio(void *data, bool state)
 	return ret;
 }
 
+static int bt_status = 0;
+
 static int thunderg_bluetooth_power(int on)
 {
 	int pin, rc;
 
-	
-	printk(KERN_DEBUG "%s\n", __func__);
+         if (on == bt_status)	
+                return 0;         	
+
+        printk(KERN_DEBUG "%s\n", __func__);
 	printk( "%s %d\n", __func__, on);
 
 	if (on) {
@@ -105,7 +109,8 @@ static int thunderg_bluetooth_power(int on)
 			}
 		}
 	}
-	return 0;
+        bt_status = on;
+        return 0;
 }
 
 static struct bluetooth_platform_data thunderg_bluetooth_data = {
