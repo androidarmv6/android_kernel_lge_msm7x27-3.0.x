@@ -1,6 +1,6 @@
 /*
    BlueZ - Bluetooth protocol stack for Linux
-   Copyright (c) 2000-2001, 2010-2012 Code Aurora Forum.  All rights reserved.
+   Copyright (c) 2000-2001, 2010-2012 The Linux Foundation.  All rights reserved.
 
    Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
 
@@ -44,38 +44,167 @@
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
+#include <net/bluetooth/l2cap.h>
 
-static void hci_le_connect(struct hci_conn *conn)
+struct hci_conn *hci_le_connect(struct hci_dev *hdev, __u16 pkt_type,
+				bdaddr_t *dst, __u8 sec_level, __u8 auth_type,
+				struct bt_le_params *le_params)
 {
-	struct hci_dev *hdev = conn->hdev;
+	struct hci_conn *le, *le_wlist_conn;
 	struct hci_cp_le_create_conn cp;
+	struct adv_entry *entry;
+	struct link_key *key;
 
-	BT_DBG("%p", conn);
+	BT_DBG("%p", hdev);
 
-	conn->state = BT_CONNECT;
-	conn->out = 1;
-	conn->link_mode |= HCI_LM_MASTER;
-	conn->sec_level = BT_SECURITY_LOW;
-	conn->type = LE_LINK;
+	le = hci_conn_hash_lookup_ba(hdev, LE_LINK, dst);
+	if (le) {
+		le_wlist_conn = hci_conn_hash_lookup_ba(hdev, LE_LINK,
+								BDADDR_ANY);
+		if (!le_wlist_conn) {
+			hci_conn_hold(le);
+			return le;
+		} else {
+			BT_DBG("remove wlist conn");
+			le->out = 1;
+			le->link_mode |= HCI_LM_MASTER;
+			le->sec_level = BT_SECURITY_LOW;
+			le->type = LE_LINK;
+			hci_proto_connect_cfm(le, 0);
+			hci_conn_del(le_wlist_conn);
+			return le;
+		}
+	}
+
+	key = hci_find_link_key_type(hdev, dst, KEY_TYPE_LTK);
+	if (!key) {
+		entry = hci_find_adv_entry(hdev, dst);
+		if (entry)
+			le = hci_le_conn_add(hdev, dst,
+					entry->bdaddr_type);
+		else
+			le = hci_le_conn_add(hdev, dst, 0);
+	} else {
+		le = hci_le_conn_add(hdev, dst, key->addr_type);
+	}
+
+	if (!le)
+		return ERR_PTR(-ENOMEM);
+
+	hci_conn_hold(le);
+
+	le->state = BT_CONNECT;
+	le->out = 1;
+	le->link_mode |= HCI_LM_MASTER;
+	le->sec_level = BT_SECURITY_LOW;
+	le->type = LE_LINK;
 
 	memset(&cp, 0, sizeof(cp));
-	cp.scan_interval = cpu_to_le16(0x0004);
-	cp.scan_window = cpu_to_le16(0x0004);
-	bacpy(&cp.peer_addr, &conn->dst);
-	cp.peer_addr_type = conn->dst_type;
-	cp.conn_interval_min = cpu_to_le16(0x0008);
-	cp.conn_interval_max = cpu_to_le16(0x0100);
-	cp.supervision_timeout = cpu_to_le16(1000);
-	cp.min_ce_len = cpu_to_le16(0x0001);
-	cp.max_ce_len = cpu_to_le16(0x0001);
+	if (l2cap_sock_le_params_valid(le_params)) {
+		cp.supervision_timeout =
+				cpu_to_le16(le_params->supervision_timeout);
+		cp.scan_interval = cpu_to_le16(le_params->scan_interval);
+		cp.scan_window = cpu_to_le16(le_params->scan_window);
+		cp.conn_interval_min = cpu_to_le16(le_params->interval_min);
+		cp.conn_interval_max = cpu_to_le16(le_params->interval_max);
+		cp.conn_latency = cpu_to_le16(le_params->latency);
+		cp.min_ce_len = cpu_to_le16(le_params->min_ce_len);
+		cp.max_ce_len = cpu_to_le16(le_params->max_ce_len);
+		le->conn_timeout = le_params->conn_timeout;
+	} else {
+		cp.supervision_timeout = cpu_to_le16(BT_LE_SUP_TO_DEFAULT);
+		cp.scan_interval = cpu_to_le16(BT_LE_SCAN_INTERVAL_DEF);
+		cp.scan_window = cpu_to_le16(BT_LE_SCAN_WINDOW_DEF);
+		cp.conn_interval_min = cpu_to_le16(BT_LE_CONN_INTERVAL_MIN_DEF);
+		cp.conn_interval_max = cpu_to_le16(BT_LE_CONN_INTERVAL_MAX_DEF);
+		cp.conn_latency = cpu_to_le16(BT_LE_LATENCY_DEF);
+		le->conn_timeout = 5;
+	}
+	if (!bacmp(&le->dst, BDADDR_ANY)) {
+		cp.filter_policy = 0x01;
+		le->conn_timeout = 0;
+	} else {
+		bacpy(&cp.peer_addr, &le->dst);
+		cp.peer_addr_type = le->dst_type;
+	}
 
 	hci_send_cmd(hdev, HCI_OP_LE_CREATE_CONN, sizeof(cp), &cp);
+
+	return le;
 }
+EXPORT_SYMBOL(hci_le_connect);
 
 static void hci_le_connect_cancel(struct hci_conn *conn)
 {
 	hci_send_cmd(conn->hdev, HCI_OP_LE_CREATE_CONN_CANCEL, 0, NULL);
 }
+
+void hci_le_cancel_create_connect(struct hci_dev *hdev, bdaddr_t *dst)
+{
+	struct hci_conn *le;
+
+	BT_DBG("%p", hdev);
+
+	le = hci_conn_hash_lookup_ba(hdev, LE_LINK, dst);
+	if (le) {
+		BT_DBG("send hci connect cancel");
+		hci_le_connect_cancel(le);
+		hci_conn_del(le);
+	}
+}
+EXPORT_SYMBOL(hci_le_cancel_create_connect);
+
+void hci_le_add_dev_white_list(struct hci_dev *hdev, bdaddr_t *dst)
+{
+	struct hci_cp_le_add_dev_white_list cp;
+	struct adv_entry *entry;
+	struct link_key *key;
+
+	BT_DBG("%p", hdev);
+
+	memset(&cp, 0, sizeof(cp));
+	bacpy(&cp.addr, dst);
+
+	key = hci_find_link_key_type(hdev, dst, KEY_TYPE_LTK);
+	if (!key) {
+		entry = hci_find_adv_entry(hdev, dst);
+		if (entry)
+			cp.addr_type = entry->bdaddr_type;
+		else
+			cp.addr_type = 0x00;
+	} else {
+		cp.addr_type = key->addr_type;
+	}
+
+	hci_send_cmd(hdev, HCI_OP_LE_ADD_DEV_WHITE_LIST, sizeof(cp), &cp);
+}
+EXPORT_SYMBOL(hci_le_add_dev_white_list);
+
+void hci_le_remove_dev_white_list(struct hci_dev *hdev, bdaddr_t *dst)
+{
+	struct hci_cp_le_remove_dev_white_list cp;
+	struct adv_entry *entry;
+	struct link_key *key;
+
+	BT_DBG("%p", hdev);
+
+	memset(&cp, 0, sizeof(cp));
+	bacpy(&cp.addr, dst);
+
+	key = hci_find_link_key_type(hdev, dst, KEY_TYPE_LTK);
+	if (!key) {
+		entry = hci_find_adv_entry(hdev, dst);
+		if (entry)
+			cp.addr_type = entry->bdaddr_type;
+		else
+			cp.addr_type = 0x00;
+	} else {
+		cp.addr_type = key->addr_type;
+	}
+
+	hci_send_cmd(hdev, HCI_OP_LE_REMOVE_DEV_WHITE_LIST, sizeof(cp), &cp);
+}
+EXPORT_SYMBOL(hci_le_remove_dev_white_list);
 
 void hci_acl_connect(struct hci_conn *conn)
 {
@@ -520,7 +649,6 @@ struct hci_chan *hci_chan_add(struct hci_dev *hdev)
 
 	return chan;
 }
-EXPORT_SYMBOL(hci_chan_add);
 
 int hci_chan_del(struct hci_chan *chan)
 {
@@ -664,41 +792,12 @@ struct hci_conn *hci_connect(struct hci_dev *hdev, int type,
 {
 	struct hci_conn *acl;
 	struct hci_conn *sco;
-	struct hci_conn *le;
 
 	BT_DBG("%s dst %s", hdev->name, batostr(dst));
 
-	if (type == LE_LINK) {
-		struct adv_entry *entry;
-		struct link_key *key;
-
-		le = hci_conn_hash_lookup_ba(hdev, LE_LINK, dst);
-		if (le) {
-			hci_conn_hold(le);
-			return le;
-		}
-
-		key = hci_find_link_key_type(hdev, dst, KEY_TYPE_LTK);
-		if (!key) {
-			entry = hci_find_adv_entry(hdev, dst);
-			if (entry)
-				le = hci_le_conn_add(hdev, dst,
-						entry->bdaddr_type);
-			else
-				le = hci_le_conn_add(hdev, dst, 0);
-		} else {
-			le = hci_le_conn_add(hdev, dst, key->addr_type);
-		}
-
-		if (!le)
-			return ERR_PTR(-ENOMEM);
-
-		hci_le_connect(le);
-
-		hci_conn_hold(le);
-
-		return le;
-	}
+	if (type == LE_LINK)
+		return hci_le_connect(hdev, pkt_type, dst, sec_level,
+							auth_type, NULL);
 
 	acl = hci_conn_hash_lookup_ba(hdev, ACL_LINK, dst);
 	if (!acl) {
@@ -1002,12 +1101,18 @@ void hci_conn_enter_sniff_mode(struct hci_conn *conn)
 	}
 }
 
-struct hci_chan *hci_chan_create(struct hci_chan *chan,
+struct hci_chan *hci_chan_accept(struct hci_conn *conn,
 			struct hci_ext_fs *tx_fs, struct hci_ext_fs *rx_fs)
 {
+	struct hci_chan *chan;
 	struct hci_cp_create_logical_link cp;
 
+	chan = hci_chan_add(conn->hdev);
+	if (!chan)
+		return NULL;
+
 	chan->state = BT_CONNECT;
+	chan->conn = conn;
 	chan->tx_fs = *tx_fs;
 	chan->rx_fs = *rx_fs;
 	cp.phy_handle = chan->conn->handle;
@@ -1024,12 +1129,40 @@ struct hci_chan *hci_chan_create(struct hci_chan *chan,
 	cp.rx_fs.acc_latency = cpu_to_le32(chan->rx_fs.acc_latency);
 	cp.rx_fs.flush_to = cpu_to_le32(chan->rx_fs.flush_to);
 	hci_conn_hold(chan->conn);
-	if (chan->conn->out)
-		hci_send_cmd(chan->conn->hdev, HCI_OP_CREATE_LOGICAL_LINK,
-							sizeof(cp), &cp);
-	else
-		hci_send_cmd(chan->conn->hdev, HCI_OP_ACCEPT_LOGICAL_LINK,
-							sizeof(cp), &cp);
+	hci_send_cmd(conn->hdev, HCI_OP_ACCEPT_LOGICAL_LINK, sizeof(cp), &cp);
+	return chan;
+}
+EXPORT_SYMBOL(hci_chan_accept);
+
+struct hci_chan *hci_chan_create(struct hci_conn *conn,
+			struct hci_ext_fs *tx_fs, struct hci_ext_fs *rx_fs)
+{
+	struct hci_chan *chan;
+	struct hci_cp_create_logical_link cp;
+
+	chan = hci_chan_add(conn->hdev);
+	if (!chan)
+		return NULL;
+
+	chan->state = BT_CONNECT;
+	chan->conn = conn;
+	chan->tx_fs = *tx_fs;
+	chan->rx_fs = *rx_fs;
+	cp.phy_handle = chan->conn->handle;
+	cp.tx_fs.id = chan->tx_fs.id;
+	cp.tx_fs.type = chan->tx_fs.type;
+	cp.tx_fs.max_sdu = cpu_to_le16(chan->tx_fs.max_sdu);
+	cp.tx_fs.sdu_arr_time = cpu_to_le32(chan->tx_fs.sdu_arr_time);
+	cp.tx_fs.acc_latency = cpu_to_le32(chan->tx_fs.acc_latency);
+	cp.tx_fs.flush_to = cpu_to_le32(chan->tx_fs.flush_to);
+	cp.rx_fs.id = chan->rx_fs.id;
+	cp.rx_fs.type = chan->rx_fs.type;
+	cp.rx_fs.max_sdu = cpu_to_le16(chan->rx_fs.max_sdu);
+	cp.rx_fs.sdu_arr_time = cpu_to_le32(chan->rx_fs.sdu_arr_time);
+	cp.rx_fs.acc_latency = cpu_to_le32(chan->rx_fs.acc_latency);
+	cp.rx_fs.flush_to = cpu_to_le32(chan->rx_fs.flush_to);
+	hci_conn_hold(chan->conn);
+	hci_send_cmd(conn->hdev, HCI_OP_CREATE_LOGICAL_LINK, sizeof(cp), &cp);
 	return chan;
 }
 EXPORT_SYMBOL(hci_chan_create);
