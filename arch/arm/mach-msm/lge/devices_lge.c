@@ -769,40 +769,6 @@ int init_gpio_i2c_pin(struct i2c_gpio_platform_data *i2c_adap_pdata,
 	return 0;
 }
 
-#ifdef CONFIG_MACH_MSM7X27_PECAN
-int init_gpio_i2c_pin_touch(struct i2c_gpio_platform_data *i2c_adap_pdata,
-    struct gpio_i2c_pin gpio_i2c_pin,
-    struct i2c_board_info *i2c_board_info_data)
-{
-  i2c_adap_pdata->sda_pin = gpio_i2c_pin.sda_pin;
-  i2c_adap_pdata->scl_pin = gpio_i2c_pin.scl_pin;
-  {
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.sda_pin, 0, GPIO_CFG_OUTPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.scl_pin, 0, GPIO_CFG_OUTPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-
-  }
-  gpio_set_value(gpio_i2c_pin.sda_pin, 1);
-  gpio_set_value(gpio_i2c_pin.scl_pin, 1);
-
-  if (gpio_i2c_pin.reset_pin) {
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.reset_pin, 0, GPIO_CFG_OUTPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-    gpio_set_value(gpio_i2c_pin.reset_pin, 1);
-  }
-
-  if (gpio_i2c_pin.irq_pin) {
-    gpio_tlmm_config(GPIO_CFG(gpio_i2c_pin.irq_pin, 0, GPIO_CFG_INPUT,
-      GPIO_CFG_NO_PULL, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-    i2c_board_info_data->irq =
-      MSM_GPIO_TO_INT(gpio_i2c_pin.irq_pin);
-  }
-
-  return 0;
-}
-#endif
-
 __WEAK void __init lge_add_camera_devices(void)
 {
 }

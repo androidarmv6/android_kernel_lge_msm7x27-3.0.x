@@ -31,12 +31,20 @@
 #include <mach/board_lge.h>
 #include "board-pecan.h"
 
+static u32 pecan_battery_capacity(u32 current_soc)
+{
+	if(current_soc > 100)
+		current_soc = 100;
+
+	return current_soc;
+}
+
 static struct msm_psy_batt_pdata msm_psy_batt_data = {
-	.voltage_min_design 	= 2800,
-	.voltage_max_design	= 4300,
-	.avail_chg_sources   	= AC_CHG | USB_CHG ,
+	.voltage_min_design     = 3200,
+	.voltage_max_design     = 4200,
+	.avail_chg_sources      = AC_CHG | USB_CHG ,
 	.batt_technology        = POWER_SUPPLY_TECHNOLOGY_LION,
-//	.calculate_capacity	= &msm_calculate_batt_capacity,
+	.calculate_capacity		= pecan_battery_capacity,
 };
 
 static struct platform_device msm_batt_device = {
