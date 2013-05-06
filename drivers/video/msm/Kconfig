@@ -553,6 +553,13 @@ config FB_MSM_MDDI_HITACHI_HVGA
         select FB_MSM_MDDI
         ---help---
           Support for MDDI HITACHI HVGA(320x480) Panel.
+
+config FB_MSM_MDDI_HITACHI_HVGA_LCD_WORKAROUND
+        bool "MDDI HITACHI HVGA Panel LCD_WORKAROUND"
+        depends on FB_MSM_MDDI_HITACHI_HVGA
+        ---help---
+          Fix for MDDI HITACHI HVGA Panel.
+
 # LGE_CHANGE_E [minjong.gong] 2010-03-24, Google Mass CDMA Hitachi MDDI I/F LCD
 
 # P690 Dsiplay Driver config start

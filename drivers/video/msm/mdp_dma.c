@@ -55,7 +55,7 @@ int vsync_start_y_adjust = 4;
   * Define 'HITACHI_LCD_WORKAROUND' to use workaround code for 1st cut LCD
   * 2010-04-22, minjong.gong@lge.com
   */
-#ifdef CONFIG_FB_MSM_MDDI_HITACHI_HVGA
+#ifdef CONFIG_FB_MSM_MDDI_HITACHI_HVGA_LCD_WORKAROUND
 #define HITACHI_LCD_WORKAROUND
 #endif
 
