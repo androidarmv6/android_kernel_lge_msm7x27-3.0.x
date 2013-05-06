@@ -741,7 +741,7 @@ static int mddi_hitachi_lcd_init(void)
 		pinfo->yres = 480;
 		pinfo->type = MDDI_PANEL;
 		pinfo->pdest = DISPLAY_1;
-		pinfo->mddi.vdopkt = 0x23;//MDDI_DEFAULT_PRIM_PIX_ATTR;
+		pinfo->mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR; //0x23;
 		pinfo->wait_cycle = 0;
 		pinfo->bpp = 16;
 	
