@@ -61,7 +61,7 @@ static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
 	uint8 *src;
 	uint32 mddi_ld_param;
 	uint16 mddi_vdo_packet_reg;
-#ifndef CONFIG_FB_MSM_MDP303
+#if defined (CONFIG_FB_MSM_MDP303) || defined (CONFIG_FB_MSM_EBI2)
 	struct msm_fb_panel_data *pdata =
 	    (struct msm_fb_panel_data *)mfd->pdev->dev.platform_data;
 #endif
@@ -236,6 +236,11 @@ static void mdp_dma2_update_lcd(struct msm_fb_data_type *mfd)
 		 MDP_OUTP(MDP_BASE + 0xF1000, 0x10);
 		 /* enable dsi trigger on dma_p */
 		 MDP_OUTP(MDP_BASE + 0xF1004, 0x01);
+	}
+	else if (mfd->panel_info.type == EBI2_PANEL) {
+		/* setting EBI2 LCDC write window */
+		pdata->set_rect(iBuf->dma_x, iBuf->dma_y, iBuf->dma_w,
+				iBuf->dma_h);
 	}
 #endif
 

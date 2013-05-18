@@ -178,15 +178,9 @@ static struct resource msm_fb_resources[] = {
 
 static int msm_fb_detect_panel(const char *name)
 {
-	int ret = -EPERM;
-
-	if (machine_is_msm7x25_ffa() || machine_is_msm7x27_ffa()) {
+	int ret = -ENODEV;
 		if (!strcmp(name, "lcdc_gordon_vga"))
 			ret = 0;
-		else
-			ret = -ENODEV;
-	}
-
 	return ret;
 }
 

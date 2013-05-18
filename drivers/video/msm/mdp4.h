@@ -628,7 +628,7 @@ void mdp4_mddi_read_ptr_intr(void);
 
 void mdp4_dsi_cmd_dma_busy_check(void);
 
-#ifdef CONFIG_FB_MSM_MIPI_DSI
+#if defined (CONFIG_FB_MSM_MIPI_DSI) || defined (CONFIG_FB_MSM_EBI2)
 void mdp4_dsi_cmd_dma_busy_wait(struct msm_fb_data_type *mfd);
 void mdp4_dsi_blt_dmap_busy_wait(struct msm_fb_data_type *mfd);
 void mdp4_overlay_dsi_video_vsync_push(struct msm_fb_data_type *mfd,

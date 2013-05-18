@@ -1684,7 +1684,12 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 				      TRUE);
 			complete(&dma->comp);
 #else
+#ifdef CONFIG_FB_MSM_EBI2
+		if (mdp_prim_panel_type == MIPI_CMD_PANEL ||
+				mdp_prim_panel_type == EBI2_PANEL) {
+#else
 			if (mdp_prim_panel_type == MIPI_CMD_PANEL) {
+#endif
 				dma = &dma2_data;
 				dma->busy = FALSE;
 				mdp_pipe_ctrl(MDP_DMA2_BLOCK,
