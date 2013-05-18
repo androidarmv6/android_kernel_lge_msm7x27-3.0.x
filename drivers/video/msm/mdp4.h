@@ -636,6 +636,7 @@ void mdp4_overlay_dsi_video_vsync_push(struct msm_fb_data_type *mfd,
 void mdp4_dsi_cmd_overlay_restore(void);
 void mdp_dsi_cmd_overlay_suspend(void);
 #else
+#ifndef CONFIG_FB_MSM_MDP303 // already defined in mdp.h
 static inline void mdp4_dsi_cmd_dma_busy_wait(struct msm_fb_data_type *mfd)
 {
 	/* empty */
@@ -644,6 +645,7 @@ static inline void mdp4_dsi_blt_dmap_busy_wait(struct msm_fb_data_type *mfd)
 {
 	/* empty */
 }
+#endif
 static inline void mdp4_overlay_dsi_video_vsync_push(
 	struct msm_fb_data_type *mfd, struct mdp4_overlay_pipe *pipe)
 {
