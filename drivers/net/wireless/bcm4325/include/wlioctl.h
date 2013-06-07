@@ -37,7 +37,6 @@
 #include <proto/bcmevent.h>
 #include <proto/802.11.h>
 #include <bcmwifi.h>
-#include <qmath_complex.h>
 
 
 
