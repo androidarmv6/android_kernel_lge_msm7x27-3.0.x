@@ -96,9 +96,7 @@ typedef struct wl_iw {
 	struct ether_addr spy_addr[IW_MAX_SPY];
 	struct iw_quality spy_qual[IW_MAX_SPY];
 	void  *wlinfo;
-#if defined(BCMDONGLEHOST)
 	dhd_pub_t * pub;
-#endif 
 } wl_iw_t;
 
 struct wl_ctrl {

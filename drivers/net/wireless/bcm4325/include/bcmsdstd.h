@@ -71,9 +71,7 @@ extern void sdstd_osfree(sdioh_info_t *sd);
 #define SDIOH_TYPE_JMICRON	6	/* JMicron Standard SDIO Host Controller */
 
 /* For linux, allow yielding for dongle */
-#if defined(BCMDONGLEHOST)
 #define BCMSDYIELD
-#endif
 
 /* Expected card status value for CMD7 */
 #define SDIOH_CMD7_EXP_STATUS   0x00001E00
