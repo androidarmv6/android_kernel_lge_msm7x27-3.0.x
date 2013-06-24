@@ -36,12 +36,8 @@
 #include <linux/if_arp.h>
 #include <asm/uaccess.h>
 
-#ifndef BCMDONGLEHOST
-#include <wlc_cfg.h>
-#else
 #include <dngl_stats.h>
 #include <dhd.h>
-#endif
 #include <dhdioctl.h>
 
 
@@ -51,10 +47,6 @@ typedef void wl_info_t;
 typedef const struct si_pub  si_t;
 #include <wlioctl.h>
 
-#ifndef BCMDONGLEHOST
-#include <wlc_pub.h>
-#include <wl_dbg.h>
-#else
 #include <proto/ethernet.h>
 #include <dngl_stats.h>
 #include <dhd.h>
@@ -63,21 +55,18 @@ typedef const struct si_pub  si_t;
 #define WL_ASSOC(x)
 #define WL_INFORM(x)
 #define WL_WSEC(x)
-#endif
+#define WL_SCAN(x)
 
 #include <wl_iw.h>
-
 
 
 #define IW_WSEC_ENABLED(wsec)	((wsec) & (WEP_ENABLED | TKIP_ENABLED | AES_ENABLED))
 
 #include <linux/rtnetlink.h>
+#include <linux/mutex.h>
 
-
-#if defined(BCMDONGLEHOST)
 #define WL_IW_USE_ISCAN  1
 #define ENABLE_ACTIVE_PASSIVE_SCAN_SUPPRESS  1
-#endif
 
 #if defined(SOFTAP)
 #include <dhd_dbg.h> 
@@ -102,7 +91,6 @@ static int wl_iw_softap_deassoc_stations(struct net_device *dev);	//patch ROMTER
 
 static int		g_onoff = G_WLAN_SET_ON;
 
-#if defined(STA) || defined(BCMDONGLEHOST)
 extern bool wl_iw_conn_status_str(uint32 event_type, uint32 status,
 	uint32 reason, char* stringBuf, uint buflen);
 #include <bcmsdbus.h>
@@ -115,16 +103,14 @@ extern void dhd_customer_gpio_wlan_ctrl(int onoff);
 /* LGE_CHANGE_E [yoohoo@lge.com] 2009-12-08, support start/stop */
 extern uint dhd_dev_reset(struct net_device *dev, uint8 flag);
 extern void dhd_dev_init_ioctl(struct net_device *dev);
-#endif 
+int dev_iw_write_cfg1_bss_var(struct net_device *dev, int val);
 
-#ifdef BCMDONGLEHOST
 uint wl_msg_level = WL_ERROR_VAL;
-#endif
 
 #define MAX_WLIW_IOCTL_LEN 1024
 
 
-#if defined(BCMDONGLEHOST) && defined(IL_BIGENDIAN)
+#if defined(IL_BIGENDIAN)
 #include <bcmendian.h>
 #define htod32(i) (bcmswap32(i))
 #define htod16(i) (bcmswap16(i))
@@ -142,13 +128,8 @@ uint wl_msg_level = WL_ERROR_VAL;
 #endif
 
 #ifdef CONFIG_WIRELESS_EXT
-
-#if defined(BCMDONGLEHOST)
 extern struct iw_statistics *dhd_get_wireless_stats(struct net_device *dev);
 extern int dhd_wait_pend8021x(struct net_device *dev);
-#else
-extern struct iw_statistics *wl_get_wireless_stats(struct net_device *dev);
-#endif 
 #endif 
 
 #if WIRELESS_EXT < 19
@@ -178,7 +159,6 @@ static wlc_ssid_t g_ssid;
 static wl_iw_ss_cache_ctrl_t g_ss_cache_ctrl;	
 static volatile uint g_first_broadcast_scan;	
 
-#if defined(BCMDONGLEHOST)
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0))
 #define DAEMONIZE(a) daemonize(a); \
@@ -191,7 +171,6 @@ static volatile uint g_first_broadcast_scan;
 	do { if (a) \
 		strncpy(current->comm, a, MIN(sizeof(current->comm), (strlen(a) + 1))); \
 	} while (0);
-#endif 
 
 #if defined(WL_IW_USE_ISCAN)
 static void wl_iw_free_ss_cache(void);
@@ -269,6 +248,7 @@ wl_iw_set_scan(
 	union iwreq_data *wrqu,
 	char *extra
 );
+
 static int
 wl_iw_get_scan(
 	struct net_device *dev,
@@ -284,7 +264,6 @@ wl_iw_get_scan_prep(
 	char *extra,
 	short max_size
 );
-
 
 static void swap_key_from_BE(
 	        wl_wsec_key_t *key
@@ -406,7 +385,7 @@ dev_wlc_intvar_set(
 	return (dev_wlc_ioctl(dev, WLC_SET_VAR, buf, len));
 }
 
-#if defined(BCMDONGLEHOST) && defined(WL_IW_USE_ISCAN)
+#if defined(WL_IW_USE_ISCAN)
 static int
 dev_iw_iovar_setbuf(
 	struct net_device *dev,
@@ -420,6 +399,9 @@ dev_iw_iovar_setbuf(
 
 	iolen = bcm_mkiovar(iovar, param, paramlen, bufptr, buflen);
 	ASSERT(iolen);
+
+	if (iolen == 0)
+		return 0;
 
 	return (dev_wlc_ioctl(dev, WLC_SET_VAR, bufptr, iolen));
 }
@@ -450,11 +432,8 @@ dev_wlc_bufvar_set(
 	char *name,
 	char *buf, int len)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
-	char ioctlbuf[MAX_WLIW_IOCTL_LEN];
-#else
+
 	static char ioctlbuf[MAX_WLIW_IOCTL_LEN];
-#endif
 	uint buflen;
 
 	buflen = bcm_mkiovar(name, buf, len, ioctlbuf, sizeof(ioctlbuf));
@@ -471,11 +450,7 @@ dev_wlc_bufvar_get(
 	char *name,
 	char *buf, int buflen)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
-    char ioctlbuf[MAX_WLIW_IOCTL_LEN];
-#else
-    static char ioctlbuf[MAX_WLIW_IOCTL_LEN];
-#endif
+	static char ioctlbuf[MAX_WLIW_IOCTL_LEN];
 	int error;
 
 	uint len;
@@ -1050,20 +1025,16 @@ static int
 _wl_control_sysioc_thread_wl_off(void *data)
 {
 	struct wl_ctrl *wl_ctl = (struct wl_ctrl *)data;
-
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 	wl_iw_t *iw = *(wl_iw_t **)netdev_priv(wl_ctl->dev);
-#endif 
-
+#endif
 	DAEMONIZE("wlcontrol_sysioc");
 
 	WL_TRACE(("%s Entered\n", __FUNCTION__));
-
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 	WAKE_LOCK_INIT(iw->pub, WAKE_LOCK_OFF, "sysioc_thread_wl_off");
 	WAKE_LOCK(iw->pub, WAKE_LOCK_OFF);
-#endif 
-
+#endif
 	while (down_interruptible(&wl_ctl->timer_sem) == 0) {
 
 		WL_TRACE(("%s Turning off wifi dev\n", __FUNCTION__));
@@ -1118,10 +1089,10 @@ _wl_control_sysioc_thread_wl_off(void *data)
 /* LGE_CHANGE_E, [yoohoo@lge.com], 2010-01-27, successive power key press lock up */
 	WL_TRACE(("%s Exited\n", __FUNCTION__));
 
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 	WAKE_UNLOCK(iw->pub, WAKE_LOCK_OFF);
 	WAKE_LOCK_DESTROY(iw->pub, WAKE_LOCK_OFF);
-#endif 
+#endif
 
 	complete_and_exit(&wl_ctl->sysioc_exited, 0);
 	KILL_PROC(wl_ctl->sysioc_pid, SIGTERM);
@@ -4551,11 +4522,9 @@ wl_iw_set_encodeext(
 				break;
 		}
 		swap_key_from_BE(&key);
-
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 		dhd_wait_pend8021x(dev);
-#endif 
-
+#endif
 		error = dev_wlc_ioctl(dev, WLC_SET_KEY, &key, sizeof(key));
 		if (error)
 			return error;
@@ -6196,9 +6165,7 @@ static int wl_iw_set_priv(
 	iw = *(wl_iw_t **)netdev_priv(dev);
 /* LGE_CHANGE_E, [jisung.yang@lge.com], 2010-04-04, <Check whether dev is null or not> */
 #else
-#if defined(BCMDONGLEHOST)
 	wl_iw_t *iw = *(wl_iw_t **)netdev_priv(dev);
-#endif 
 #endif	/* defined(CONFIG_LGE_BCM432X_PATCH) */
 
 	if (!(extra = kmalloc(dwrq->length, GFP_KERNEL)))
@@ -6214,20 +6181,20 @@ static int wl_iw_set_priv(
 
 	
 	if (dwrq->length && extra) {
-
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 		WAKE_LOCK_INIT(iw->pub, WAKE_LOCK_PRIV, "wl_iw_set_priv");
 		WAKE_LOCK(iw->pub, WAKE_LOCK_PRIV);
-#endif 
-
+#endif
 /* LGE_CHANGE_S [yoohoo@lge.com] 2009-07-09, send wl_iw_send_priv_event  */
 /* only if receiving regular START command */
 #if defined(CONFIG_LGE_BCM432X_PATCH)
 		if (g_onoff == G_WLAN_SET_OFF) {
 			if (strnicmp(extra, "START", strlen("START")) != 0) {
 				WL_TRACE(("%s, missing START, simulate START\n", __FUNCTION__));
-		                WAKE_UNLOCK(iw->pub, WAKE_LOCK_PRIV);
-		                WAKE_LOCK_DESTROY(iw->pub, WAKE_LOCK_PRIV);
+#ifdef EMBEDDED_PLATFORM
+				WAKE_UNLOCK(iw->pub, WAKE_LOCK_PRIV);
+				WAKE_LOCK_DESTROY(iw->pub, WAKE_LOCK_PRIV);
+#endif
 				kfree(extra);
 				return -EFAULT;
 			} else {
@@ -6250,10 +6217,10 @@ static int wl_iw_set_priv(
 			if (strnicmp(extra, "START", strlen("START")) != 0) {
 					WL_ERROR(("%s First IOCTL after stop is NOT START \n",
 						__FUNCTION__));
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 					WAKE_UNLOCK(iw->pub, WAKE_LOCK_PRIV);
 					WAKE_LOCK_DESTROY(iw->pub, WAKE_LOCK_PRIV);
-#endif 
+#endif
 					kfree(extra);
 					return -EFAULT;
 			} else {
@@ -6407,10 +6374,10 @@ static int wl_iw_set_priv(
 			dwrq->length = strlen("OK") + 1;
 			WL_ERROR(("Unkown PRIVATE command , ignored\n"));
 		}
-#if defined(BCMDONGLEHOST)
+#ifdef EMBEDDED_PLATFORM
 		WAKE_UNLOCK(iw->pub, WAKE_LOCK_PRIV);
 		WAKE_LOCK_DESTROY(iw->pub, WAKE_LOCK_PRIV);
-#endif 
+#endif
 	}
 
 	if (extra) {
@@ -6706,11 +6673,7 @@ const struct iw_handler_def wl_iw_handler_def =
 	.private_args = (void *) wl_iw_priv_args,
 
 #if WIRELESS_EXT >= 19
-#if defined(BCMDONGLEHOST)
-	get_wireless_stats: dhd_get_wireless_stats,
-#else
-	get_wireless_stats: wl_get_wireless_stats,
-#endif 
+	get_wireless_stats: dhd_get_wireless_stats, 
 #endif 
 	};
 
@@ -6822,8 +6785,6 @@ int wl_iw_ioctl(
 	return ret;
 }
 
-#if defined(STA) || defined(BCMDONGLEHOST)
-
 bool
 wl_iw_conn_status_str(uint32 event_type, uint32 status, uint32 reason,
 	char* stringBuf, uint buflen)
@@ -6863,12 +6824,10 @@ wl_iw_conn_status_str(uint32 event_type, uint32 status, uint32 reason,
 		"Conn", "ReassocTimeout"},
 		{WLC_E_REASSOC,      WLC_E_STATUS_ABORT,     WL_IW_DONT_CARE,
 		"Conn", "ReassocAbort"},
-#if defined(BCMSUP_PSK) || defined(BCMDONGLEHOST)
 		{WLC_E_PSK_SUP,      WLC_SUP_KEYED,          WL_IW_DONT_CARE,
 		"Sup", "ConnSuccess"},
 		{WLC_E_PSK_SUP,      WL_IW_DONT_CARE,        WL_IW_DONT_CARE,
 		"Sup", "WpaHandshakeFail"},
-#endif 
 		{WLC_E_DEAUTH_IND,   WL_IW_DONT_CARE,        WL_IW_DONT_CARE,
 		"Conn", "Deauth"},
 		{WLC_E_DISASSOC_IND, WL_IW_DONT_CARE,        WL_IW_DONT_CARE,
@@ -6910,15 +6869,9 @@ wl_iw_conn_status_str(uint32 event_type, uint32 status, uint32 reason,
 static bool
 wl_iw_check_conn_fail(wl_event_msg_t *e, char* stringBuf, uint buflen)
 {
-#ifdef BCMDONGLEHOST
 	uint32 event = ntoh32(e->event_type);
 	uint32 status =  ntoh32(e->status);
 	uint32 reason =  ntoh32(e->reason);
-#else
-	uint32 event = e->event_type;
-	uint32 status =  e->status;
-	uint32 reason =  e->reason;
-#endif
 
 	if (wl_iw_conn_status_str(event, status, reason, stringBuf, buflen)) {
 		return TRUE;
@@ -6926,12 +6879,11 @@ wl_iw_check_conn_fail(wl_event_msg_t *e, char* stringBuf, uint buflen)
 	else
 		return FALSE;
 }
-#endif 
-#endif 
+#endif
 
 #ifndef IW_CUSTOM_MAX
 #define IW_CUSTOM_MAX 256 
-#endif 
+#endif
 
 void
 wl_iw_event(struct net_device *dev, wl_event_msg_t *e, void* data)
@@ -6940,35 +6892,23 @@ wl_iw_event(struct net_device *dev, wl_event_msg_t *e, void* data)
 	union iwreq_data wrqu;
 	char extra[IW_CUSTOM_MAX + 1];
 	int cmd = 0;
-#ifdef BCMDONGLEHOST
 	uint32 event_type = ntoh32(e->event_type);
 	uint16 flags =  ntoh16(e->flags);
 	uint32 datalen = ntoh32(e->datalen);
 	uint32 status =  ntoh32(e->status);
-#else
-	uint32 event_type = e->event_type;
-	uint16 flags =  e->flags;
-	uint32 datalen = e->datalen;
-	uint32 status =  e->status;
-#endif
 #if !defined(CONFIG_LGE_BCM432X_PATCH)
-#if defined(BCMDONGLEHOST)
 	wl_iw_t *iw = *(wl_iw_t **)netdev_priv(dev);
-#endif 
 #else
-	wl_iw_t *iw;
+	wl_iw_t *iw = 0;
 #endif
 
 	memset(&wrqu, 0, sizeof(wrqu));
 	memset(extra, 0, sizeof(extra));
 #if defined(CONFIG_LGE_BCM432X_PATCH)
-	iw = 0;
-
 	if (!dev) {
 		WL_ERROR(("%s: dev is null\n", __FUNCTION__));
 		return;
 	}
-
 	iw = *(wl_iw_t **)netdev_priv(dev);
 #endif
 
@@ -7007,7 +6947,7 @@ wl_iw_event(struct net_device *dev, wl_event_msg_t *e, void* data)
 			}
 		}
 		break;
-#endif 
+#endif
 	case WLC_E_TXFAIL:
 		cmd = IWEVTXDROP;
 		memcpy(wrqu.addr.sa_data, &e->addr, ETHER_ADDR_LEN);
@@ -7051,28 +6991,26 @@ wl_iw_event(struct net_device *dev, wl_event_msg_t *e, void* data)
 	case WLC_E_NDIS_LINK:
 		cmd = SIOCGIWAP;
 		if (!(flags & WLC_EVENT_MSG_LINK)) {
-			
-			
 #ifdef SOFTAP
-		//if (ap_mode && !strncmp(dev->name, "wl0.1", 5)) {	//patch ROMTERM RC239 - comment
-		if (ap_cfg_running && !strncmp(dev->name, "wl0.1", 5)) {	//patch ROMTERM RC239 - add
-		
-			WL_SOFTAP(("AP DOWN %d\n", event_type));
-			wl_iw_send_priv_event(priv_dev, "AP_DOWN");
-		} else {
-			WL_TRACE(("STA_Link Down\n"));
+#ifdef AP_ONLY
+			if (ap_cfg_running) {
+#else
+			if (ap_cfg_running && !strncmp(dev->name, "wl0.1", 5)) {
+#endif /* AP_ONLY */
+				WL_SOFTAP(("AP DOWN %d\n", event_type));
+				wl_iw_send_priv_event(priv_dev, "AP_DOWN");
+			} else {
+				WL_TRACE(("STA_Link Down\n"));
+				g_ss_cache_ctrl.m_link_down = 1;
+			}
+#else
 			g_ss_cache_ctrl.m_link_down = 1;
-		}
-#else		
-		g_ss_cache_ctrl.m_link_down = 1;
-#endif
-
-
+#endif /* SOFTAP */
 			bzero(wrqu.addr.sa_data, ETHER_ADDR_LEN);
 			bzero(&extra, ETHER_ADDR_LEN);
-#if defined(BCMDONGLEHOST)
-			WAKE_LOCK_TIMEOUT(iw->pub, WAKE_LOCK_LINK_DOWN_TMOUT, 20 * HZ);
-#endif 
+#ifdef EMBEDDED_PLATFORM
+			WAKE_LOCK_TIMEOUT(iw->pub, WAKE_LOCK_LINK_DOWN_TMOUT, 20 * HZ); /* ??? */
+#endif
 		}
 		else {
 			
@@ -7195,9 +7133,7 @@ wl_iw_event(struct net_device *dev, wl_event_msg_t *e, void* data)
 			wireless_send_event(dev, cmd, &wrqu, extra);
 #endif
 
-#if defined(STA) || defined(BCMDONGLEHOST)
 #if WIRELESS_EXT > 14
-	
 	memset(extra, 0, sizeof(extra));
 	if (wl_iw_check_conn_fail(e, extra, sizeof(extra))) {
 		cmd = IWEVCUSTOM;
@@ -7206,10 +7142,8 @@ wl_iw_event(struct net_device *dev, wl_event_msg_t *e, void* data)
 		wireless_send_event(dev, cmd, &wrqu, extra);
 #endif
 	}
-#endif 
-#endif 
-
-#endif 
+#endif /*WIRELESS_EXT > 14*/
+#endif
 }
 
 int wl_iw_get_wireless_stats(struct net_device *dev, struct iw_statistics *wstats)
@@ -7441,9 +7375,8 @@ wl_iw_bt_init(struct net_device *dev)
 #endif 
 int wl_iw_attach(struct net_device *dev, void * dhdp)
 {
-#if defined(BCMDONGLEHOST)
+	int params_size;
 	wl_iw_t *iw;
-#endif 
 #if defined(WL_IW_USE_ISCAN)
 	iscan_info_t *iscan = NULL;
 
@@ -7487,14 +7420,10 @@ int wl_iw_attach(struct net_device *dev, void * dhdp)
         sema_init(&wl_off_sem , 0);
 #endif	/* defined(CONFIG_LGE_BCM432X_PATCH) && ( defined(CONFIG_BRCM_USE_GPIO_RESET) || defined(CONFIG_BRCM_USE_DEEPSLEEP)) */
 /* LGE_CHANGE_E, [yoohoo@lge.com], 2010-01-27, successive power key press lock up */
-#if defined(BCMDONGLEHOST)
 	iw = *(wl_iw_t **)netdev_priv(dev);
 	iw->pub = (dhd_pub_t *)dhdp;
-#endif 
 
 	g_scan = NULL;
-
-	
 	g_scan = (void *)kmalloc(G_SCAN_RESULTS, GFP_KERNEL);
 	if (!g_scan)
 		return -ENOMEM;
@@ -7502,7 +7431,6 @@ int wl_iw_attach(struct net_device *dev, void * dhdp)
 	memset(g_scan, 0, G_SCAN_RESULTS);
 	g_scan_specified_ssid = 0;
 
-	
 	wl_iw_init_ss_cache_ctrl();
 #ifdef COEX_DHCP
 	
