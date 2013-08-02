@@ -16,13 +16,13 @@ endif
 endif
 
 AFLAGS_head.o := -DTEXT_OFFSET=$(TEXT_OFFSET)
-AFLAGS_head.o += -Wa,-march=armv6
+AFLAGS_head.o += -Wa,-march=armv6k
 HEAD	= head.o
 
-AFLAGS_misc.o +=-Wa,-march=armv6
+AFLAGS_misc.o +=-Wa,-march=armv6k
 MISC = misc.o
 
-AFLAGS_decompress.o += -Wa,-march=armv6
+AFLAGS_decompress.o += -Wa,-march=armv6k
 DECOMPRESS = decompress.o
 
 FONTC	= $(srctree)/drivers/video/console/font_acorn_8x8.c
@@ -150,14 +150,14 @@ LDFLAGS_vmlinux += -X
 LDFLAGS_vmlinux += -T
 
 # For __aeabi_uidivmod
-AFLAGS_lib1funcs.o +=-Wa,-march=armv6
+AFLAGS_lib1funcs.o +=-Wa,-march=armv6k
 lib1funcs = $(obj)/lib1funcs.o
 
 $(obj)/lib1funcs.S: $(srctree)/arch/$(SRCARCH)/lib/lib1funcs.S
 	$(call cmd,shipped)
 
 # For __aeabi_llsl
-AFLAGS_ashldi3.o +=-Wa,-march=armv6
+AFLAGS_ashldi3.o +=-Wa,-march=armv6k
 ashldi3 = $(obj)/ashldi3.o
 
 $(obj)/ashldi3.S: $(srctree)/arch/$(SRCARCH)/lib/ashldi3.S
@@ -184,7 +184,7 @@ $(obj)/vmlinux: $(obj)/vmlinux.lds $(obj)/$(HEAD) $(obj)/$(MISC) $(obj)/$(DECOMP
 $(obj)/piggy.$(suffix_y): $(obj)/../Image FORCE
 	$(call if_changed,$(suffix_y))
 
-AFLAGS_piggy.$(suffix_y).o += -Wa,-march=armv6
+AFLAGS_piggy.$(suffix_y).o += -Wa,-march=armv6k
 $(obj)/piggy.$(suffix_y).o:  $(obj)/piggy.$(suffix_y) FORCE
 
 CFLAGS_font.o := -Dstatic=
