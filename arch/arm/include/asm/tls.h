@@ -7,9 +7,17 @@
 
 	.macro set_tls_v6k, tp, tmp1, tmp2
 	mcr	p15, 0, \tp, c13, c0, 3		@ set TLS register
-#ifdef CONFIG_TLS_USERSPACE_EMUL
+#if defined(CONFIG_TLS_USERSPACE_EMUL) && defined(CONFIG_CPU_USE_DOMAINS)
 	mov	\tmp1, #0xffff0fff
 	str	\tp, [\tmp1, #-15]		@ set TLS value at 0xffff0ff0
+#elif defined(CONFIG_TLS_USERSPACE_EMUL) && !defined(CONFIG_CPU_USE_DOMAINS)
+	ldr	\tmp1, =vectors_page
+	ldr	\tmp1, [\tmp1]
+	add	\tmp1, #0xff0
+	str	\tp, [\tmp1]			@ set TLS value at vectors_page + 0xff0
+#else
+	mov	\tmp1, #0
+	mcr	p15, 0, \tmp1, c13, c0, 2	@ clear user r/w TLS register
 #endif
 	.endm
 
@@ -19,10 +27,12 @@
 	mov	\tmp2, #0xffff0fff
 	tst	\tmp1, #HWCAP_TLS		@ hardware TLS available?
 	mcrne	p15, 0, \tp, c13, c0, 3		@ yes, set TLS register
-#ifdef CONFIG_TLS_USERSPACE_EMUL
-	str	\tp, [\tmp2, #-15]		@ set TLS value at 0xffff0ff0
-#else
+#ifndef CONFIG_TLS_USERSPACE_EMUL
+	movne	\tmp1, #0
+	mcrne	p15, 0, \tmp1, c13, c0, 2	@ clear user r/w TLS register
 	streq	\tp, [\tmp2, #-15]		@ set TLS value at 0xffff0ff0
+#else
+	str	\tp, [\tmp2, #-15]		@ set TLS value at 0xffff0ff0
 #endif
 	.endm
 
