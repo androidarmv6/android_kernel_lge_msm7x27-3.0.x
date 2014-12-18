@@ -563,7 +563,13 @@ asmlinkage int arm_syscall(int no, struct pt_regs *regs)
 			 * The user helper at 0xffff0fe0 must be used instead.
 			 * (see entry-armv.S for details)
 			 */
+#ifdef CONFIG_CPU_USE_DOMAINS
 			*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
+#else
+			asm ("add %0, #0xff0\n"
+				"str %1, [%0]\n"
+				: : "r" (vectors_page), "r" (regs->ARM_r0));
+#endif
 		}
 		return 0;
 
