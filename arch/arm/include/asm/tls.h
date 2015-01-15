@@ -19,6 +19,7 @@
 	mov	\tmp1, #0
 	mcr	p15, 0, \tmp1, c13, c0, 2	@ clear user r/w TLS register
 #endif
+
 	.endm
 
 	.macro set_tls_v6, tp, tmp1, tmp2
